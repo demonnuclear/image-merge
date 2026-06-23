@@ -141,8 +141,8 @@ def run_scan_background(config):
         # ═══ 阶段 1：扫描目录 ═══
         scan_progress.update({
             'status': 'scanning',
-            'message': '开始扫描目录...',
-            'log': ['开始扫描目录...']
+            'message': '🔄 正在扫描目录：遍历所有子目录，识别图片文件（jpg/png/gif/bmp/webp...），计算每个文件的 SHA256 哈希值用于精确去重...',
+            'log': ['[阶段1/3] 扫描目录']
         })
 
         # 调用 scan_directories()，传入 update_progress 作为回调
@@ -152,8 +152,8 @@ def run_scan_background(config):
         # ═══ 阶段 2：计算感知哈希 ═══
         scan_progress.update({
             'status': 'phashing',
-            'message': '开始计算感知哈希...',
-            'log': scan_progress.get('log', []) + ['开始计算感知哈希...']
+            'message': '🖼️ 正在计算感知哈希（pHash）：逐张解码图片，提取视觉特征指纹，用于识别"看起来一样"的图片（即使分辨率/格式/压缩率不同）...',
+            'log': scan_progress.get('log', []) + ['[阶段2/3] 计算感知哈希（pHash）']
         })
 
         for dir_key in ['dir_a', 'dir_b']:
@@ -168,8 +168,8 @@ def run_scan_background(config):
         # ═══ 阶段 3：分析重复关系 ═══
         scan_progress.update({
             'status': 'analyzing',
-            'message': '正在分析重复关系...',
-            'log': scan_progress.get('log', []) + ['正在分析重复关系...']
+            'message': '📊 正在分析重复关系：比对所有文件的 SHA256 和感知哈希，找出精确重复（内容完全一样）和视觉相似（看起来一样）的图片，统计可释放空间...',
+            'log': scan_progress.get('log', []) + ['[阶段3/3] 分析重复关系']
         })
 
         # analyze() 很快，不需要进度回调
@@ -178,7 +178,8 @@ def run_scan_background(config):
         # ═══ 完成 ═══
         total = analysis_result.get('summary', {}).get('total_files', 0)
         dup = analysis_result.get('summary', {}).get('exact_duplicate_count', 0)
-        msg = f'扫描完成！共 {total} 个文件，{dup} 组重复'
+        vis = analysis_result.get('summary', {}).get('visual_duplicate_count', 0)
+        msg = f'🎉 扫描完成！共扫描 {total} 个文件，发现 {dup} 组精确重复，{vis} 组视觉相似，进入报告页查看详情'
 
         scan_progress.update({
             'status': 'done',

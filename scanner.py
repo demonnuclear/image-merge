@@ -215,7 +215,7 @@ def scan_directory(directory_path, progress_callback=None):
 
                 # 通知回调：找到新文件
                 if progress_callback:
-                    progress_callback('file_found', f'找到: {relative_path}',
+                    progress_callback('file_found', f'🔍 正在扫描: {relative_path} （共找到 {len(files_info)} 个图片文件）',
                                       current_file=relative_path,
                                       count=len(files_info),
                                       total=0)
@@ -396,7 +396,7 @@ def calculate_phash_for_all(scanned_files, progress_callback=None):
         # 通知回调：正在计算 pHash
         if progress_callback:
             progress_callback('phash_progress',
-                              f'计算感知哈希 ({i}/{total}): {rel_path}',
+                              f'🖼️ 正在计算感知哈希：解码图片 → 提取视觉指纹 ({i}/{total}) {rel_path}',
                               current_file=rel_path,
                               count=i, total=total)
 
