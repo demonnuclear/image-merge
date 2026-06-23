@@ -1584,8 +1584,8 @@ def setup_logger():
     log_file = Path(__file__).parent / 'merge.log'
 
     # 文件处理器：日志写入文件
-    # mode='a' 表示追加模式（不覆盖之前的日志）
-    file_handler = logging.FileHandler(log_file, mode='a', encoding='utf-8')
+    # mode='dir_a' 表示追加模式（不覆盖之前的日志）
+    file_handler = logging.FileHandler(log_file, mode='dir_a', encoding='utf-8')
     file_handler.setLevel(logging.INFO)
 
     # 日志格式：时间 - 级别 - 消息

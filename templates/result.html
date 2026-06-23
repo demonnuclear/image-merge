@@ -76,7 +76,7 @@
                             <span style="color:var(--orange);">&#x1F5D1; 回收</span>
                             {% endif %}
                         </td>
-                        <td style="font-family:monospace;font-size:12px;">{{ op.filename }}</td>
+                        <td style="font-family:monospace;font-size:12px;">{{ op.relative_path }}</td>
                         <td>{{ (op.size / 1024) | round(1) }} KB</td>
                     </tr>
                     {% endfor %}
@@ -99,7 +99,7 @@
                     </tr>
                     {% for op in result.failed_operations %}
                     <tr>
-                        <td>{{ op.filename }}</td>
+                        <td>{{ op.relative_path }}</td>
                         <td style="color:var(--red);">{{ op.error }}</td>
                     </tr>
                     {% endfor %}

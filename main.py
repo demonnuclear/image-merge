@@ -27,7 +27,7 @@ import threading
 
 # ── 导入 Flask 和相关组件 ──
 # from flask import Flask   的意思：从 flask 包中导入 Flask 类
-# from xxx import a, b, c   是 Python 常用的导入方式，可以一次导入多个
+# from xxx import dir_a, dir_b, c   是 Python 常用的导入方式，可以一次导入多个
 # jsonify: 将 Python 字典转为 JSON 响应（供前端 AJAX 轮询）
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 

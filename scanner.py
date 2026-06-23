@@ -215,8 +215,8 @@ def scan_directory(directory_path, progress_callback=None):
 
                 # 通知回调：找到新文件
                 if progress_callback:
-                    progress_callback('file_found', f'找到: {filename}',
-                                      current_file=filename,
+                    progress_callback('file_found', f'找到: {relative_path}',
+                                      current_file=relative_path,
                                       count=len(files_info),
                                       total=0)
 
@@ -387,14 +387,17 @@ def calculate_phash_for_all(scanned_files, progress_callback=None):
     # enumerate() 返回 (索引, 元素) 的元组
     # 索引从 1 开始（start=1），方便显示进度
     for i, file_info in enumerate(scanned_files, 1):
+        # 获取相对路径（如果没有就用文件名兜底）
+        rel_path = file_info.get('relative_path', file_info['name'])
+
         # 显示进度
-        print(f"  [pHash] ({i}/{total}) {file_info['name']}")
+        print(f"  [pHash] ({i}/{total}) {rel_path}")
 
         # 通知回调：正在计算 pHash
         if progress_callback:
             progress_callback('phash_progress',
-                              f'计算感知哈希 ({i}/{total}): {file_info["name"]}',
-                              current_file=file_info['name'],
+                              f'计算感知哈希 ({i}/{total}): {rel_path}',
+                              current_file=rel_path,
                               count=i, total=total)
 
         # 如果 SHA256 计算失败，也没必要算 pHash 了

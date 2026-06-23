@@ -94,12 +94,12 @@
                     <tr>
                         <td>
                             {% for f in dup.files_a %}
-                            <div>{{ f.name }}</div>
+                            <div>{{ f.relative_path }}</div>
                             {% endfor %}
                         </td>
                         <td>
                             {% for f in dup.files_b %}
-                            <div>{{ f.name }}</div>
+                            <div>{{ f.relative_path }}</div>
                             {% endfor %}
                         </td>
                         <td>{{ (dup.size_per_file / 1024) | round(1) }} KB</td>
@@ -125,7 +125,7 @@
                         <td style="font-family:monospace;font-size:11px;">{{ dup.sha256[:16] }}...</td>
                         <td>
                             {% for f in dup.files %}
-                            <div>{{ f.name }}</div>
+                            <div>{{ f.relative_path }}</div>
                             {% endfor %}
                         </td>
                         <td>{{ dup.count }}</td>
@@ -148,7 +148,7 @@
                     <div style="max-height:300px;overflow-y:auto;font-size:12px;font-family:monospace;">
                         {% for f in result.unique_to_a %}
                         <div style="padding:4px 0;border-bottom:1px solid var(--border);">
-                            {{ f.name }} ({{ (f.size / 1024) | round(1) }} KB)
+                            {{ f.relative_path }} ({{ (f.size / 1024) | round(1) }} KB)
                         </div>
                         {% endfor %}
                     </div>
@@ -164,7 +164,7 @@
                     <div style="max-height:300px;overflow-y:auto;font-size:12px;font-family:monospace;">
                         {% for f in result.unique_to_b %}
                         <div style="padding:4px 0;border-bottom:1px solid var(--border);">
-                            {{ f.name }} ({{ (f.size / 1024) | round(1) }} KB)
+                            {{ f.relative_path }} ({{ (f.size / 1024) | round(1) }} KB)
                         </div>
                         {% endfor %}
                     </div>

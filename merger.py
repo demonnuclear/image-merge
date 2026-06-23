@@ -140,6 +140,7 @@ def generate_merge_plan(analysis_result, config):
             'type': 'copy',
             'file_path': f['path'],
             'filename': f['name'],
+            'relative_path': f.get('relative_path', f['name']),
             'size': f['size'],
             'reason': '源目录中独有的文件，需要复制到目标目录'
         })
@@ -157,6 +158,7 @@ def generate_merge_plan(analysis_result, config):
                 'type': 'delete',
                 'file_path': f['path'],
                 'filename': f['name'],
+                'relative_path': f.get('relative_path', f['name']),
                 'size': f['size'],
                 'reason': '与目标目录中的文件重复（SHA256 相同）'
             })
@@ -251,18 +253,31 @@ def execute_merge(plan):
     for op in plan['operations']:
         try:
             if op['type'] == 'copy':
-                # ═══ 复制文件 ═══
-                # 构建目标路径
-                dest_path = os.path.join(
-                    target_dir, op['filename']
-                )
+                # ═══ 复制文件（保留源目录结构） ═══
+                # 使用 relative_path 保留子目录结构
+                # 例如: source/sub/dir/img.jpg → target/sub/dir/img.jpg
+                rel_path = op.get('relative_path', op['filename'])
+                dest_path = os.path.join(target_dir, rel_path)
+
+                # 创建目标子目录（如果不存在）
+                dest_dir = os.path.dirname(dest_path)
+                if dest_dir and not os.path.exists(dest_dir):
+                    os.makedirs(dest_dir, exist_ok=True)
+
                 # 如果目标文件已存在，加后缀
                 if os.path.exists(dest_path):
-                    name, ext = os.path.splitext(op['filename'])
+                    name, ext = os.path.splitext(rel_path)
                     dest_path = os.path.join(
                         target_dir,
                         f"{name}_copy{ext}"
                     )
+                    # 如果加后缀后的文件也冲突，加时间戳
+                    if os.path.exists(dest_path):
+                        name, ext = os.path.splitext(rel_path)
+                        dest_path = os.path.join(
+                            target_dir,
+                            f"{name}_{timestamp}{ext}"
+                        )
 
                 # shutil.copy2() 复制文件并保留元数据
                 shutil.copy2(op['file_path'], dest_path)
@@ -270,15 +285,18 @@ def execute_merge(plan):
                 executed.append(op)
 
             elif op['type'] == 'delete':
-                # ═══ 移至回收区 ═══
-                # 在回收区中的路径
-                recycle_path = os.path.join(
-                    recycle_dir, op['filename']
-                )
+                # ═══ 移至回收区（保留源目录结构） ═══
+                rel_path = op.get('relative_path', op['filename'])
+                recycle_path = os.path.join(recycle_dir, rel_path)
+
+                # 创建回收区子目录（如果不存在）
+                recycle_subdir = os.path.dirname(recycle_path)
+                if recycle_subdir and not os.path.exists(recycle_subdir):
+                    os.makedirs(recycle_subdir, exist_ok=True)
 
                 # 处理同名文件（加时间戳后缀）
                 if os.path.exists(recycle_path):
-                    name, ext = os.path.splitext(op['filename'])
+                    name, ext = os.path.splitext(rel_path)
                     recycle_path = os.path.join(
                         recycle_dir,
                         f"{name}_{timestamp}{ext}"
@@ -290,7 +308,7 @@ def execute_merge(plan):
                 executed.append(op)
 
         except (OSError, shutil.Error) as e:
-            logger.error(f"[失败] {op['type']} {op.get('filename','')}: {e}")
+            logger.error(f"[失败] {op['type']} {op.get('relative_path', op.get('filename',''))}: {e}")
             op['error'] = str(e)
             failed.append(op)
 
