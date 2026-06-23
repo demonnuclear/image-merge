@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 图片去重合并工具 (Image Dedup & Merge Tool)
 
 一个基于 Flask 的 Web 工具，用于扫描和合并两个目录中的重复图片。
