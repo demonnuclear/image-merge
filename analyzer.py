@@ -20,7 +20,7 @@ Python 知识点：
 """
 
 
-def analyze(scan_result):
+def analyze(scan_result, progress_callback=None):
     """
     分析扫描结果，找出所有重复关系。
 
@@ -42,6 +42,10 @@ def analyze(scan_result):
         'self_duplicates_b': [B 内部重复],
         'summary': { 汇总统计 }
     }
+
+    Args:
+        scan_result: scanner.scan_directories() 返回的结果
+        progress_callback: 进度回调函数，在视觉对比阶段逐对上报进度
     """
     # ── 提取文件列表 ──
     # scan_result.get('dir_a', {}) 是「安全获取」
@@ -167,6 +171,18 @@ def analyze(scan_result):
     if (len(unique_to_a) <= MAX_VISUAL_CHECK and
         len(unique_to_b) <= MAX_VISUAL_CHECK and
         unique_to_a and unique_to_b):
+        # 计算总比较次数，用于进度显示
+        total_comparisons = len(unique_to_a) * len(unique_to_b)
+        # 每比较完 ~20 对上报一次进度，防止日志刷屏
+        log_interval = max(1, total_comparisons // 20)
+
+        # 通知回调：开始视觉对比
+        if progress_callback:
+            progress_callback('visual_compare',
+                              f'🔍 开始视觉相似对比：源目录 {len(unique_to_a)} 个文件 × 目标目录 {len(unique_to_b)} 个文件 = {total_comparisons} 次逐对比较...',
+                              current_file='', count=0, total=total_comparisons)
+
+        compare_count = 0
         for f_a in unique_to_a:
             phash_a = f_a.get('phash')
             if not phash_a:
@@ -175,6 +191,8 @@ def analyze(scan_result):
                 phash_b = f_b.get('phash')
                 if not phash_b:
                     continue
+                compare_count += 1
+
                 # 计算两个十六进制哈希值的汉明距离
                 # int(x, 16) 将十六进制字符串转为整数
                 # bin(x) 将整数转为二进制字符串
@@ -182,6 +200,25 @@ def analyze(scan_result):
                 hamming = bin(
                     int(phash_a, 16) ^ int(phash_b, 16)
                 ).count('1')
+
+                # 每 log_interval 次或找到匹配时上报进度
+                # 这样用户能清楚看到正在对比哪两个文件
+                if progress_callback and (
+                    compare_count % log_interval == 0 or hamming <= 10
+                ):
+                    rel_a = f_a.get('relative_path', f_a.get('name', ''))
+                    rel_b = f_b.get('relative_path', f_b.get('name', ''))
+                    if hamming <= 10:
+                        log_msg = (f'✅ 发现视觉相似: [源] {rel_a} ↔ [目标] {rel_b}'
+                                   f'（汉明距离: {hamming}）')
+                    else:
+                        log_msg = (f'🔄 正在逐对比对第 {compare_count}/{total_comparisons} 对:'
+                                   f' [源] {rel_a} ↔ [目标] {rel_b}'
+                                   f'（汉明距离: {hamming}）')
+                    progress_callback('visual_compare', log_msg,
+                                      current_file=rel_a,
+                                      count=compare_count, total=total_comparisons)
+
                 # 汉明距离 ≤ 10 视为视觉相似
                 if hamming <= 10:
                     visual_duplicates.append({

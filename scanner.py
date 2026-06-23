@@ -122,7 +122,7 @@ def sha256_hash(file_path):
         return None
 
 
-def scan_directory(directory_path, progress_callback=None):
+def scan_directory(directory_path, progress_callback=None, dir_label=''):
     """
     扫描一个目录，找出所有图片文件并计算 SHA256。
 
@@ -145,6 +145,7 @@ def scan_directory(directory_path, progress_callback=None):
                 stage 取值: 'dir_scan' 扫描目录中 / 'file_found' 找到文件
                 message: 描述文本
                 kwargs 可包含: dir_key, current_file, count, total
+        dir_label: 目录标识名（如"源目录"、"目标目录"），用于日志显示
 
     Returns:
         list: 文件信息字典列表
@@ -174,7 +175,7 @@ def scan_directory(directory_path, progress_callback=None):
 
     # 遍历前通知回调
     if progress_callback:
-        progress_callback('dir_scan', f'正在扫描目录: {directory_path}',
+        progress_callback('dir_scan', f'[{dir_label}] 正在遍历目录树: {directory_path}',
                           dir_key='', count=0, total=0)
 
     # os.walk() 递归遍历目录树
@@ -215,7 +216,7 @@ def scan_directory(directory_path, progress_callback=None):
 
                 # 通知回调：找到新文件
                 if progress_callback:
-                    progress_callback('file_found', f'🔍 正在扫描: {relative_path} （共找到 {len(files_info)} 个图片文件）',
+                    progress_callback('file_found', f'📄 [{dir_label}] 提取文件信息: {relative_path} （已从{dir_label}找到 {len(files_info)} 个图片文件）',
                                       current_file=relative_path,
                                       count=len(files_info),
                                       total=0)
@@ -275,13 +276,20 @@ def scan_directories(config, progress_callback=None):
         print(f"  开始扫描 {dir_key}: {dir_path}")
         print(f"{'=' * 50}")
 
+        # 设置目录显示名：dir_a 是源目录，dir_b 是目标目录
+        if dir_key == 'dir_a':
+            dir_label = '源目录'
+        else:
+            dir_label = '目标目录'
+
         # 通知回调：开始扫描该目录
         if progress_callback:
-            progress_callback('phase_change', f'正在扫描目录 {dir_key}...',
+            progress_callback('phase_change', f'正在扫描 {dir_label} ({dir_key})...',
                               dir_key=dir_key, phase='scan')
 
         # 传入回调，让 scan_directory 上报文件级进度
-        files = scan_directory(dir_path, progress_callback)
+        # dir_label 用于在日志中标识文件来自源目录还是目标目录
+        files = scan_directory(dir_path, progress_callback, dir_label=dir_label)
 
         # 计算总大小
         total_size = sum(f['size'] for f in files if f['sha256'])
@@ -361,7 +369,7 @@ def phash_image(file_path):
         return None
 
 
-def calculate_phash_for_all(scanned_files, progress_callback=None):
+def calculate_phash_for_all(scanned_files, progress_callback=None, dir_label=''):
     """
     为扫描结果列表中的所有文件批量计算感知哈希。
 
@@ -372,6 +380,7 @@ def calculate_phash_for_all(scanned_files, progress_callback=None):
     Args:
         scanned_files: scan_directory() 返回的文件列表
         progress_callback: 进度回调函数，每处理一个文件调用一次
+        dir_label: 目录标识名（如"源目录"、"目标目录"），用于日志显示
 
     Returns:
         list: 添加了 'phash' 字段的文件列表（就是传入的同一个列表）
@@ -396,7 +405,7 @@ def calculate_phash_for_all(scanned_files, progress_callback=None):
         # 通知回调：正在计算 pHash
         if progress_callback:
             progress_callback('phash_progress',
-                              f'🖼️ 正在计算感知哈希：解码图片 → 提取视觉指纹 ({i}/{total}) {rel_path}',
+                              f'🖼️ [{dir_label}] 计算感知哈希 ({i}/{total}): {rel_path}',
                               current_file=rel_path,
                               count=i, total=total)
 

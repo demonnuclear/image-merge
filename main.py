@@ -121,7 +121,7 @@ def run_scan_background(config):
         scan_progress.update({
             'status': 'scanning' if stage in ('dir_scan', 'file_found') else
                       'phashing' if stage == 'phash_progress' else
-                      'analyzing' if stage == 'analyze' else
+                      'analyzing' if stage in ('analyze', 'visual_compare') else
                       scan_progress.get('status', 'scanning'),
             'message': message,
             'dir_key': kwargs.get('dir_key', scan_progress.get('dir_key', '')),
@@ -130,11 +130,11 @@ def run_scan_background(config):
             'total': kwargs.get('total', scan_progress.get('total', 0)),
             'error': None
         })
-        # 追加日志，限制最多 100 条
+        # 追加日志，限制最多 300 条（扫描 + pHash + 对比总共可能几百条，100 条不够）
         log = scan_progress.get('log', [])
         log.append(log_entry)
-        if len(log) > 100:
-            log = log[-100:]
+        if len(log) > 300:
+            log = log[-300:]
         scan_progress['log'] = log
 
     try:
@@ -142,7 +142,7 @@ def run_scan_background(config):
         scan_progress.update({
             'status': 'scanning',
             'message': '🔄 正在扫描目录：遍历所有子目录，识别图片文件（jpg/png/gif/bmp/webp...），计算每个文件的 SHA256 哈希值用于精确去重...',
-            'log': ['[阶段1/3] 扫描目录']
+            'log': ['[阶段1/3] 扫描目录 —— 遍历源目录和目标目录，提取每个图片文件的信息（路径、大小、SHA256）']
         })
 
         # 调用 scan_directories()，传入 update_progress 作为回调
@@ -153,27 +153,29 @@ def run_scan_background(config):
         scan_progress.update({
             'status': 'phashing',
             'message': '🖼️ 正在计算感知哈希（pHash）：逐张解码图片，提取视觉特征指纹，用于识别"看起来一样"的图片（即使分辨率/格式/压缩率不同）...',
-            'log': scan_progress.get('log', []) + ['[阶段2/3] 计算感知哈希（pHash）']
+            'log': scan_progress.get('log', []) + ['[阶段2/3] 计算感知哈希（pHash）—— 逐张解码图片、转为灰度图、做离散余弦变换、提取 64 位视觉指纹']
         })
 
         for dir_key in ['dir_a', 'dir_b']:
             files = scan_result.get(dir_key, {}).get('files', [])
             if files:
+                dir_label = '源目录' if dir_key == 'dir_a' else '目标目录'
                 scan_progress['dir_key'] = dir_key
                 # 传入回调，每处理一个文件上报一次进度
+                # dir_label 用于在日志中标注文件来自源目录还是目标目录
                 scan_result[dir_key]['files'] = calculate_phash_for_all(
-                    files, progress_callback=update_progress
+                    files, progress_callback=update_progress, dir_label=dir_label
                 )
 
         # ═══ 阶段 3：分析重复关系 ═══
         scan_progress.update({
             'status': 'analyzing',
             'message': '📊 正在分析重复关系：比对所有文件的 SHA256 和感知哈希，找出精确重复（内容完全一样）和视觉相似（看起来一样）的图片，统计可释放空间...',
-            'log': scan_progress.get('log', []) + ['[阶段3/3] 分析重复关系']
+            'log': scan_progress.get('log', []) + ['[阶段3/3] 分析重复关系 —— 按 SHA256 分组 → 集合运算找交集 → 逐对比较感知哈希（汉明距离）→ 统计可释放空间']
         })
 
-        # analyze() 很快，不需要进度回调
-        analysis_result = analyze(scan_result)
+        # 传入回调，让 analyzer.py 在视觉对比时报告逐对比较进度
+        analysis_result = analyze(scan_result, progress_callback=update_progress)
 
         # ═══ 完成 ═══
         total = analysis_result.get('summary', {}).get('total_files', 0)
