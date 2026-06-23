@@ -224,12 +224,14 @@ def execute_merge(plan):
             'recycle_dir': ''
         }
 
-    # ── 创建回收区目录 ──
-    # 在目标目录下创建 .recycle/YYYYMMDD_HHMMSS/ 目录
-    # 回收区命名带时间戳，防止多次操作的文件混在一起
+    # ── 创建回收区目录（在源目录下，与原文件同磁盘） ──
+    # 例如: 文件在 /volume1/photo/sub/img.jpg
+    #       回收在 /volume1/photo/.recycle/20260623_120000/sub/img.jpg
+    # 这样回收操作不会占用目标目录的磁盘空间
     target_dir = plan['target_dir']
+    source_dir = plan['source_dir']
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    recycle_dir = os.path.join(target_dir, '.recycle', timestamp)
+    recycle_dir = os.path.join(source_dir, '.recycle', timestamp)
 
     try:
         # os.makedirs() 递归创建目录
