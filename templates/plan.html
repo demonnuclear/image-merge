@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - 图片去重</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="page-title">
+            &#x1F4CB; <span>合并方案</span>
+        </div>
+
+        {# 如果 plan 为空或没有操作，显示提示 #}
+        {% if not plan or not plan.get('operations') or plan.operations | length == 0 %}
+        <div class="empty-state">
+            <div class="icon">&#x2705;</div>
+            <p>没有需要操作的文件，两个目录已经完全一致。</p>
+            <div class="actions">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    &#x1F519; 返回首页
+                </a>
+            </div>
+        </div>
+        {% else %}
+
+        {# ═══ 方案概览卡片 ═══ #}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">合并方向</div>
+                <div style="font-size:18px;font-weight:600;margin-top:4px;">
+                    {% if plan.direction == 'a_to_b' %}
+                    A &#x2192; B
+                    {% else %}
+                    B &#x2192; A
+                    {% endif %}
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="label">需要复制</div>
+                <div class="number blue">{{ plan.summary.copy_count }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">需要回收</div>
+                <div class="number red">{{ plan.summary.delete_count }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">总处理量</div>
+                <div class="number orange">
+                    {{ (plan.summary.total_size / 1024 / 1024) | round(1) }} MB
+                </div>
+            </div>
+        </div>
+
+        {# ═══ 预览模式警告 ═══ #}
+        {% if plan.preview_mode %}
+        <div class="message warning">
+            &#x26A0;&#xFE0F; 当前为<strong>预览模式</strong>，不会执行写操作。
+            如需实际执行，请在配置页面关闭预览模式后重新扫描。
+        </div>
+        {% else %}
+        <div class="message warning">
+            &#x26A0;&#xFE0F; 即将对文件进行操作。
+            重复文件会被<strong>移入回收区</strong>（.recycle 目录），而非直接删除。
+            回收区位于目标目录下，如有需要可手动恢复。
+        </div>
+        {% endif %}
+
+        {# ═══ 操作清单 ═══ #}
+        <div class="card">
+            <h2>&#x1F4DD; 详细操作清单</h2>
+            <div class="table-wrap">
+                <table>
+                    <tr>
+                        <th>操作</th>
+                        <th>文件名</th>
+                        <th>大小</th>
+                        <th>原因</th>
+                    </tr>
+                    {% for op in plan.operations %}
+                    <tr>
+                        <td>
+                            {% if op.type == 'copy' %}
+                            <span style="color:var(--green);font-weight:600;">&#x1F4E5; 复制</span>
+                            {% else %}
+                            <span style="color:var(--red);font-weight:600;">&#x1F5D1; 回收</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-family:monospace;font-size:12px;">
+                            {{ op.filename }}
+                        </td>
+                        <td>{{ (op.size / 1024) | round(1) }} KB</td>
+                        <td style="color:var(--text-dim);font-size:12px;">
+                            {{ op.reason }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        {# ═══ 确认按钮区 ═══ #}
+        <div class="actions">
+            <a href="{{ url_for('show_report') }}" class="btn btn-secondary">
+                &#x1F519; 返回报告
+            </a>
+
+            {% if not plan.preview_mode %}
+            <form action="{{ url_for('execute') }}" method="POST"
+                  onsubmit="return confirm('确认执行合并操作？\n\n该操作会将重复文件移入回收区。\n执行前请确认已备份重要数据。');"
+                  style="display:inline;">
+                <button type="submit" class="btn btn-danger">
+                    &#x26A0;&#xFE0F; 确认执行合并
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        {% endif %}
+    </div>
+</body>
+</html>

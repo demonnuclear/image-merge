@@ -1,0 +1,15 @@
+# 本项目依赖的第三方 Python 包
+# 安装命令: pip install -r requirements.txt
+# pip 是 Python 的包管理器（类似 Java 的 Maven / C# 的 NuGet）
+
+Flask==3.1.1
+# Flask: Web 框架（类似 Spring Boot / ASP.NET Core）
+# 轻量级，一个文件就能启动 Web 服务
+
+Pillow==11.1.0
+# Pillow: 图片处理库（PIL 的现代分支，PIL 已经停止维护了）
+# 用于打开、读取图片文件，计算感知哈希时需要通过它读取图片像素
+
+imagehash==4.3.1
+# imagehash: 图片感知哈希库
+# 可以计算图片的"指纹"（pHash），用来判断两张图片视觉上是否相似

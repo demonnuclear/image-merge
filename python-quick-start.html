@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python 快速入门 - 面向 Java/C# 开发者</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --sidebar: #161b22;
+    --card: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #d29922;
+    --accent4: #f85149;
+    --accent5: #bc8cff;
+    --java: #ed8b00;
+    --python: #3776ab;
+    --csharp: #9b4f96;
+    --code-bg: #0d1117;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7;
+    display: flex; min-height: 100vh;
+  }
+  .sidebar {
+    width: 260px; min-width: 260px; background: var(--sidebar);
+    border-right: 1px solid var(--border); padding: 20px 0;
+    position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto;
+    z-index: 100;
+  }
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .logo {
+    padding: 0 20px 20px; border-bottom: 1px solid var(--border);
+    margin-bottom: 12px; text-align: center;
+  }
+  .logo h1 { font-size: 18px; color: var(--python); font-weight: 700; letter-spacing: -0.5px; }
+  .logo .sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 20px; cursor: pointer; font-size: 13px;
+    color: var(--text-dim); transition: all .15s;
+    border-left: 3px solid transparent; text-decoration: none;
+  }
+  .nav-item:hover { color: var(--text); background: rgba(88,166,255,.05); }
+  .nav-item.active {
+    color: var(--text); background: rgba(88,166,255,.1);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  .nav-item .icon { font-size: 14px; width: 20px; text-align: center; }
+  .nav-cat {
+    padding: 16px 20px 4px; font-size: 10px; text-transform: uppercase;
+    color: var(--text-dim); letter-spacing: 1px; font-weight: 600;
+  }
+  .main {
+    margin-left: 260px; flex: 1; max-width: 1200px; padding: 40px 60px 80px;
+  }
+  .hero {
+    text-align: center; padding: 50px 0 40px;
+    border-bottom: 1px solid var(--border); margin-bottom: 40px;
+  }
+  .hero h2 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .hero h2 span { color: var(--accent); }
+  .hero p { color: var(--text-dim); font-size: 15px; max-width: 600px; margin: 0 auto; }
+  .hero .badges { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  }
+  .badge.py { background: rgba(55,118,171,.2); color: var(--python); border: 1px solid rgba(55,118,171,.4); }
+  .badge.java { background: rgba(237,139,0,.15); color: var(--java); border: 1px solid rgba(237,139,0,.3); }
+  .badge.cs { background: rgba(155,79,150,.2); color: var(--csharp); border: 1px solid rgba(155,79,150,.4); }
+  .badge.js { background: rgba(210,168,56,.2); color: var(--accent3); border: 1px solid rgba(210,168,56,.3); }
+  h2.section-title {
+    font-size: 22px; font-weight: 700; margin: 40px 0 8px;
+    padding-bottom: 8px; border-bottom: 2px solid var(--accent);
+    display: inline-block;
+  }
+  .section-desc {
+    color: var(--text-dim); font-size: 14px; margin-bottom: 24px; line-height: 1.8;
+  }
+  .section-desc a { color: var(--accent); text-decoration: none; }
+  .section-desc a:hover { text-decoration: underline; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 24px; margin-bottom: 28px;
+  }
+  .card h3 {
+    font-size: 15px; font-weight: 600; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card h3 .tag {
+    font-size: 10px; padding: 2px 8px; border-radius: 4px;
+    font-weight: 500; letter-spacing: 0.3px;
+  }
+  .tag.new { background: rgba(61,185,80,.15); color: var(--accent2); border: 1px solid rgba(61,185,80,.3); }
+  .tag.key { background: rgba(210,168,56,.15); color: var(--accent3); border: 1px solid rgba(210,168,56,.3); }
+  .tag.note { background: rgba(188,140,255,.15); color: var(--accent5); border: 1px solid rgba(188,140,255,.3); }
+  .compare-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .compare-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .code-block {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+  }
+  .code-block .header {
+    padding: 6px 14px; font-size: 11px; font-weight: 600;
+    border-bottom: 1px solid var(--border); text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .code-block .header.java { color: var(--java); background: rgba(237,139,0,.08); }
+  .code-block .header.cs { color: var(--csharp); background: rgba(155,79,150,.08); }
+  .code-block .header.py { color: var(--python); background: rgba(55,118,171,.08); }
+  .code-block .header.js { color: var(--accent3); background: rgba(210,168,56,.08); }
+  .code-block .body {
+    padding: 14px 16px; font-family: 'JetBrains Mono','Cascadia Code','Fira Code',monospace;
+    font-size: 13px; line-height: 1.6; overflow-x: auto;
+    white-space: pre;
+  }
+  .kw { color: var(--accent5); font-weight: 500; }
+  .str { color: var(--accent2); }
+  .num { color: var(--accent3); }
+  .cm { color: var(--text-dim); font-style: italic; }
+  .fn { color: #d2a838; }
+  .tp { color: var(--accent); }
+  .op { color: var(--accent4); }
+  .comment-box {
+    background: rgba(210,168,56,.08); border: 1px solid rgba(210,168,56,.2);
+    border-radius: 8px; padding: 14px 18px; margin-top: 16px;
+    font-size: 13px; color: var(--accent3);
+  }
+  .comment-box strong { color: var(--text); }
+  .comment-box .highlight { color: var(--accent); }
+  .tip-box {
+    background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.2);
+    border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;
+    font-size: 13px;
+  }
+  .tip-box strong { color: var(--accent); }
+  .footer {
+    margin-top: 60px; padding-top: 30px; border-top: 1px solid var(--border);
+    text-align: center; color: var(--text-dim); font-size: 13px;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 20px; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .compare-grid.three { grid-template-columns: 1fr; }
+  }
+  .inline-code {
+    background: rgba(88,166,255,.1); color: var(--accent);
+    padding: 1px 6px; border-radius: 4px; font-family: 'JetBrains Mono','Fira Code',monospace;
+    font-size: 13px;
+  }
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  th, td {
+    padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: rgba(88,166,255,.05); color: var(--accent);
+    font-weight: 600; font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tr:hover td { background: rgba(88,166,255,.03); }
+  td .py-code {
+    color: var(--accent); font-family: 'JetBrains Mono','Fira Code',monospace;
+  }
+  td .java-code {
+    color: var(--java); font-family: 'JetBrains Mono','Fira Code',monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">
+    <h1>&#xe300; Python 速查</h1>
+    <div class="sub">For Java / C# Developers</div>
+  </div>
+  <div class="nav-cat">基础</div>
+  <a class="nav-item active" href="#intro"><span class="icon">&#x1f4a1;</span> Python 简介</a>
+  <a class="nav-item" href="#hello"><span class="icon">&#x1f44b;</span> Hello World</a>
+  <a class="nav-item" href="#vars"><span class="icon">&#x1f4ca;</span> 变量与类型</a>
+  <a class="nav-item" href="#strings"><span class="icon">&#x1f4dd;</span> 字符串</a>
+  <a class="nav-item" href="#numbers"><span class="icon">&#x2795;</span> 数值运算</a>
+  <a class="nav-item" href="#bool"><span class="icon">&#x2705;</span> 布尔值与 None</a>
+  <div class="nav-cat">数据结构</div>
+  <a class="nav-item" href="#list"><span class="icon">&#x1f4cb;</span> 列表 (List)</a>
+  <a class="nav-item" href="#tuple"><span class="icon">&#x1f4cc;</span> 元组 (Tuple)</a>
+  <a class="nav-item" href="#dict"><span class="icon">&#x1f4e6;</span> 字典 (Dict)</a>
+  <a class="nav-item" href="#set"><span class="icon">&#x235f;</span> 集合 (Set)</a>
+  <div class="nav-cat">控制流</div>
+  <a class="nav-item" href="#if"><span class="icon">&#x1f500;</span> if / elif / else</a>
+  <a class="nav-item" href="#loop"><span class="icon">&#x1f504;</span> 循环</a>
+  <div class="nav-cat">函数与 OOP</div>
+  <a class="nav-item" href="#func"><span class="icon">&#x1f3ad;</span> 函数</a>
+  <a class="nav-item" href="#comprehension"><span class="icon">&#x2728;</span> 推导式</a>
+  <a class="nav-item" href="#lambda"><span class="icon">&#x03bb;</span> Lambda</a>
+  <a class="nav-item" href="#class"><span class="icon">&#x1f3e0;</span> 类与继承</a>
+  <div class="nav-cat">高级基础</div>
+  <a class="nav-item" href="#exception"><span class="icon">&#x26a0;</span> 异常处理</a>
+  <a class="nav-item" href="#module"><span class="icon">&#x1f4e6;</span> 模块与包</a>
+  <a class="nav-item" href="#file"><span class="icon">&#x1f4c4;</span> 文件操作</a>
+  <a class="nav-item" href="#builtins"><span class="icon">&#x1f4a0;</span> 常用内置函数</a>
+  <a class="nav-item" href="#decorator"><span class="icon">&#x1f3a8;</span> 装饰器 / with</a>
+</div>
+
+<div class="main">
+
+<div class="hero">
+  <h2>从 <span>Java / C#</span> 到 <span>Python</span></h2>
+  <p>面向有经验的后端开发者的 Python 语法速查手册。通过对照熟悉的语言，快速掌握 Python 的核心语法与编程范式。</p>
+  <div class="badges">
+    <span class="badge py">Python 3.14+</span>
+    <span class="badge java">Java</span>
+    <span class="badge cs">C#</span>
+    <span class="badge js">JavaScript</span>
+  </div>
+</div>
+
+<!-- ==================== 简介 ==================== -->
+<section id="intro">
+<h2 class="section-title">&#x1f4a1; Python 简介</h2>
+<div class="section-desc">
+  基于 <a href="https://docs.python.org/3/tutorial/index.html" target="_blank">Python 官方 Tutorial</a> 和
+  <a href="https://docs.python.org/3/reference/index.html" target="_blank">Language Reference</a>。
+  如果你熟悉 Java/C#，下面的对比让你一眼看清 Python 的关键差异。
+</div>
+
+<div class="card">
+  <h3>核心差异一览</h3>
+  <div class="table-wrap">
+  <table>
+    <tr><th>特性</th><th>Java / C#</th><th>Python</th></tr>
+    <tr><td>类型系统</td><td>静态强类型（编译时检查）</td><td><span class="py-code">动态强类型</span>（运行时检查）</td></tr>
+    <tr><td>变量声明</td><td><span class="java-code">int x = 1;</span> / <span class="java-code">var x = 1;</span></td><td><span class="py-code">x = 1</span>（无需声明类型）</td></tr>
+    <tr><td>代码块</td><td>花括号 <span class="java-code">{}</span></td><td><span class="py-code">缩进</span>（通常 4 空格）</td></tr>
+    <tr><td>语句结束</td><td>分号 <span class="java-code">;</span></td><td><span class="py-code">换行</span>（无需分号）</td></tr>
+    <tr><td>注释</td><td><span class="java-code">//</span> / <span class="java-code">/* */</span></td><td><span class="py-code">#</span> / <span class="py-code">''' '''</span></td></tr>
+    <tr><td>字符串模板</td><td><span class="java-code">String.format()</span> / <span class="java-code">$"..."</span></td><td><span class="py-code">f"{x}"</span> (f-string)</td></tr>
+    <tr><td>三元表达式</td><td><span class="java-code">a ? b : c</span></td><td><span class="py-code">b if a else c</span></td></tr>
+    <tr><td>接口/抽象</td><td><span class="java-code">interface</span> / <span class="java-code">abstract</span></td><td><span class="py-code">ABC</span>（抽象基类，鸭子类型更常用）</td></tr>
+    <tr><td>属性</td><td>Getter/Setter / 自动属性</td><td><span class="py-code">@property</span> 装饰器</td></tr>
+    <tr><td>Null / 空值</td><td><span class="java-code">null</span></td><td><span class="py-code">None</span></td></tr>
+    <tr><td>逻辑运算符</td><td><span class="java-code">&amp;&amp; || !</span></td><td><span class="py-code">and or not</span></td></tr>
+  </table>
+  </div>
+</div>
+
+<div class="tip-box">
+  <strong>&#x1f4a1; 关键思维转变：</strong>
+  Python 信奉 <strong>鸭子类型</strong>（"如果它走起来像鸭子，叫起来像鸭子，那它就是鸭子"），
+  不依赖接口继承来约束类型。你不需要写 getter/setter —— 直接访问属性即可。
+  缩进不是建议，而是语法的一部分。
+</div>
+</section>
+
+<!-- ==================== Hello World ==================== -->
+<section id="hello">
+<h2 class="section-title">&#x1f44b; Hello World</h2>
+<div class="section-desc">最具 Python 风格的写法，与 Java/C# 对比。</div>
+
+<div class="compare-grid three">
+  <div class="code-block">
+    <div class="header java">Java</div>
+    <div class="body"><span class="kw">public class</span> <span class="tp">Main</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="tp">String</span>[] args) {
+        <span class="tp">System</span>.out.<span class="fn">println</span>(<span class="str">"Hello, World!"</span>);
+    }
+}</div>
+  </div>
+  <div class="code-block">
+    <div class="header cs">C#</div>
+    <div class="body"><span class="kw">class</span> <span class="tp">Program</span> {
+    <span class="kw">static void</span> <span class="fn">Main</span>(<span class="tp">string</span>[] args) {
+        <span class="tp">Console</span>.<span class="fn">WriteLine</span>(<span class="str">"Hello, World!"</span>);
+    }
+}</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="fn">print</span>(<span class="str">"Hello, World!"</span>)</div>
+  </div>
+</div>
+
+<div class="comment-box">
+  <strong>&#x1f4dd; 注意：</strong>
+  Python 不需要类、不需要 main 方法、不需要编译。脚本直接运行。
+  这是 Python 作为<strong>解释型语言</strong>的核心体验 —— 写一行就能跑一行。
+</div>
+</section>
+
+<!-- ==================== 变量与类型 ==================== -->
+<section id="vars">
+<h2 class="section-title">&#x1f4ca; 变量与数据类型</h2>
+<div class="section-desc">Python 是动态类型，变量在赋值时自动推断类型。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C# 静态类型</div>
+    <div class="body"><span class="kw">int</span> count = <span class="num">42</span>;
+<span class="tp">String</span> name = <span class="str">"Alice"</span>;
+<span class="kw">double</span> pi = <span class="num">3.14</span>;
+<span class="kw">boolean</span> ok = <span class="kw">true</span>; <span class="cm">// Java</span>
+<span class="kw">bool</span> ok = <span class="kw">true</span>; <span class="cm">// C#</span>
+
+<span class="cm">// 类型一旦确定，不可改变</span>
+count = <span class="str">"hello"</span>; <span class="cm">// &#x2716; 编译错误</span></div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python 动态类型</div>
+    <div class="body">count = <span class="num">42</span>
+name = <span class="str">"Alice"</span>
+pi = <span class="num">3.14</span>
+ok = <span class="kw">True</span>
+
+<span class="cm"># 变量可以随时改变类型</span>
+count = <span class="str">"hello"</span>  <span class="cm"># &#x2714; 完全合法</span>
+
+<span class="cm"># type() 查看类型</span>
+<span class="fn">print</span>(<span class="fn">type</span>(count))  <span class="cm"># &lt;class 'str'&gt;</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Python 基本数据类型</h3>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Python 类型</th><th>示例</th><th>Java/C# 对应</th><th>说明</th></tr>
+    <tr><td><span class="py-code">int</span></td><td><span class="py-code">x = 42</span></td><td><span class="java-code">int</span> / <span class="java-code">long</span></td><td>任意大整数，无溢出</td></tr>
+    <tr><td><span class="py-code">float</span></td><td><span class="py-code">x = 3.14</span></td><td><span class="java-code">double</span></td><td>64 位浮点数</td></tr>
+    <tr><td><span class="py-code">complex</span></td><td><span class="py-code">x = 1+2j</span></td><td>-</td><td>复数类型（Java/C# 无原生支持）</td></tr>
+    <tr><td><span class="py-code">str</span></td><td><span class="py-code">s = "hi"</span></td><td><span class="java-code">String</span> / <span class="java-code">string</span></td><td>不可变 Unicode 字符串</td></tr>
+    <tr><td><span class="py-code">bool</span></td><td><span class="py-code">b = True</span></td><td><span class="java-code">boolean</span> / <span class="java-code">bool</span></td><td>首字母大写：<span class="py-code">True</span> / <span class="py-code">False</span></td></tr>
+    <tr><td><span class="py-code">NoneType</span></td><td><span class="py-code">x = None</span></td><td><span class="java-code">null</span></td><td>空值，首字母大写</td></tr>
+    <tr><td><span class="py-code">list</span></td><td><span class="py-code">[1, 2, 3]</span></td><td><span class="java-code">ArrayList</span> / <span class="java-code">List</span></td><td>可变有序集合</td></tr>
+    <tr><td><span class="py-code">tuple</span></td><td><span class="py-code">(1, 2, 3)</span></td><td>（无直接对应）</td><td>不可变有序集合</td></tr>
+    <tr><td><span class="py-code">dict</span></td><td><span class="py-code">{"k": "v"}</span></td><td><span class="java-code">HashMap</span> / <span class="java-code">Dictionary</span></td><td>键值映射</td></tr>
+    <tr><td><span class="py-code">set</span></td><td><span class="py-code">{1, 2, 3}</span></td><td><span class="java-code">HashSet</span> / <span class="java-code">HashSet</span></td><td>无序不重复集合</td></tr>
+  </table>
+  </div>
+</div>
+
+<div class="tip-box">
+  <strong>&#x1f4a1; 类型注解（Type Hints）：</strong>
+  Python 3.6+ 支持可选的类型注解，仅用于静态分析工具和 IDE，运行时不影响：
+  <span class="inline-code">name: str = "Alice"</span>
+  <span class="inline-code">def add(x: int, y: int) -&gt; int: return x + y</span>
+</div>
+</section>
+
+<!-- ==================== 字符串 ==================== -->
+<section id="strings">
+<h2 class="section-title">&#x1f4dd; 字符串操作</h2>
+<div class="section-desc">Python 的字符串操作非常丰富，字符串是不可变的（与 Java/C# 一致）。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="tp">String</span> s1 = <span class="str">"Hello"</span>;
+<span class="tp">String</span> s2 = s1 + <span class="str">" World"</span>;  <span class="cm">// 拼接</span>
+
+<span class="cm">// 格式化</span>
+<span class="tp">String</span> s = <span class="tp">String</span>.<span class="fn">format</span>(
+    <span class="str">"Name: %s, Age: %d"</span>, n, a);
+<span class="cm">// C#: $"Name: {n}, Age: {a}"</span>
+
+<span class="cm">// 子串</span>
+s.<span class="fn">substring</span>(<span class="num">1</span>, <span class="num">3</span>);</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body">s1 = <span class="str">"Hello"</span>
+s2 = s1 + <span class="str">" World"</span>  <span class="cm"># 拼接</span>
+
+<span class="cm"># f-string 格式化（Python 3.6+）</span>
+s = <span class="str">f"Name: {name}, Age: {age}"</span>
+
+<span class="cm"># 切片 [start:stop:step]</span>
+s[<span class="num">1</span>:<span class="num">3</span>]  <span class="cm"># 'el'</span>
+s[<span class="num">1</span>:]    <span class="cm"># 'ello'（从1到末尾）</span>
+s[:<span class="num">3</span>]    <span class="cm"># 'Hel'（从0到3）</span>
+s[::<span class="num">2</span>]   <span class="cm"># 'Hlo'（步进2）</span>
+s[::<span class="num">-1</span>]  <span class="cm"># 'olleH'（反转）</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>常用字符串方法</h3>
+  <div class="table-wrap">
+  <table>
+    <tr><th>方法</th><th>示例</th><th>说明</th></tr>
+    <tr><td><span class="py-code">s.lower()</span> / <span class="py-code">s.upper()</span></td><td><span class="py-code">"Hi".lower()</span></td><td>大小写转换</td></tr>
+    <tr><td><span class="py-code">s.strip()</span></td><td><span class="py-code">" hi ".strip()</span></td><td>去除两端空白（类似 Java <span class="java-code">trim()</span>）</td></tr>
+    <tr><td><span class="py-code">s.split(sep)</span></td><td><span class="py-code">"a,b,c".split(",")</span></td><td>分割为列表</td></tr>
+    <tr><td><span class="py-code">sep.join(list)</span></td><td><span class="py-code">",".join(["a","b"])</span></td><td>合并为字符串（注意语法是分隔符调用 join）</td></tr>
+    <tr><td><span class="py-code">s.replace(old, new)</span></td><td><span class="py-code">"hi".replace("i","ello")</span></td><td>替换</td></tr>
+    <tr><td><span class="py-code">s.find(sub)</span></td><td><span class="py-code">"abc".find("b")</span></td><td>查找索引，未找到返回 -1</td></tr>
+    <tr><td><span class="py-code">s.startswith(p)</span> / <span class="py-code">s.endswith(p)</span></td><td><span class="py-code">"hi.py".endswith(".py")</span></td><td>前缀/后缀判断</td></tr>
+    <tr><td><span class="py-code">len(s)</span></td><td><span class="py-code">len("hi")</span></td><td>获取长度（函数而非方法）</td></tr>
+    <tr><td><span class="py-code">s in text</span></td><td><span class="py-code">"py" in "python"</span></td><td>包含判断（关键字，比 Java <span class="java-code">contains()</span> 更直观）</td></tr>
+  </table>
+  </div>
+</div>
+
+<div class="tip-box">
+  <strong>&#x26a0; 注意：</strong>
+  Python 的 <span class="inline-code">join()</span> 语法与多数语言相反 —— 是 <span class="inline-code">分隔符.join(列表)</span> 而非 <span class="inline-code">列表.join(分隔符)</span>。
+  切片 <span class="inline-code">s[start:stop:step]</span> 遵循<strong>左闭右开</strong>规则（start ≤ index &lt; stop）。
+</div>
+</section>
+
+<!-- ==================== 数值运算 ==================== -->
+<section id="numbers">
+<h2 class="section-title">&#x2795; 数值运算</h2>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C# 注意点</div>
+    <div class="body"><span class="kw">int</span> a = <span class="num">5</span> / <span class="num">2</span>;    <span class="cm">// 2（整数除法截断）</span>
+<span class="kw">double</span> b = <span class="num">5</span> / <span class="num">2</span>; <span class="cm">// 2.0（先整数除再转）</span>
+
+<span class="cm">// 整数溢出风险</span>
+<span class="kw">int</span> max = <span class="num">2147483647</span> + <span class="num">1</span>;
+<span class="cm">// -2147483648（溢出）</span>
+
+<span class="cm">// 自增/自减</span>
+i++; --i;</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body">a = <span class="num">5</span> / <span class="num">2</span>     <span class="cm"># 2.5（/ 永远返回 float）</span>
+b = <span class="num">5</span> // <span class="num">2</span>    <span class="cm"># 2（// 整数除法向下取整）</span>
+c = <span class="num">5</span> % <span class="num">2</span>     <span class="cm"># 1（取模）</span>
+d = <span class="num">5</span> ** <span class="num">3</span>    <span class="cm"># 125（幂运算）</span>
+
+<span class="cm"># 整数任意大，无溢出</span>
+big = <span class="num">10</span>**<span class="num">100</span>  <span class="cm"># 1后面100个0（googol）</span>
+
+<span class="cm"># 没有 ++ 和 -- 运算符</span>
+i += <span class="num">1</span>  <span class="cm"># 用复合赋值代替</span></div>
+  </div>
+</div>
+
+<div class="comment-box">
+  <strong>&#x1f4dd; 关键区别：</strong>
+  <span class="inline-code">/</span> 总是返回 <span class="inline-code">float</span>（即使整除），
+  <span class="inline-code">//</span> 才是整数除法（向下取整）。
+  <span class="inline-code">**</span> 是幂运算。没有 <span class="inline-code">++</span>/<span class="inline-code">--</span>。
+  Python 的 <span class="inline-code">int</span> 是任意精度。
+</div>
+</section>
+
+<!-- ==================== 布尔值与 None ==================== -->
+<section id="bool">
+<h2 class="section-title">&#x2705; 布尔值与 None</h2>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="kw">boolean</span> a = <span class="kw">true</span>;   <span class="cm">// Java</span>
+<span class="kw">bool</span> a = <span class="kw">true</span>;      <span class="cm">// C#</span>
+
+<span class="kw">if</span> (a &amp;&amp; b || !c) { }
+
+String s = <span class="kw">null</span>;  <span class="cm">// null</span>
+<span class="kw">if</span> (s != <span class="kw">null</span>) { }
+
+<span class="cm">// 三元</span>
+<span class="tp">String</span> r = a ? <span class="str">"yes"</span> : <span class="str">"no"</span>;</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body">a = <span class="kw">True</span>    <span class="cm"># 首字母大写！</span>
+
+<span class="kw">if</span> a <span class="kw">and</span> b <span class="kw">or</span> <span class="kw">not</span> c:
+
+s = <span class="kw">None</span>    <span class="cm"># None（首字母大写！）</span>
+<span class="kw">if</span> s <span class="kw">is not</span> <span class="kw">None</span>:
+
+<span class="cm"># 三元（顺序独特）</span>
+r = <span class="str">"yes"</span> <span class="kw">if</span> a <span class="kw">else</span> <span class="str">"no"</span>
+
+<span class="cm"># 真值判断（Python特色）</span>
+<span class="cm"># 以下都视为 False：</span>
+<span class="cm">#  None, False, 0, 0.0, "", [], {}, set()</span>
+<span class="kw">if</span> mystr:     <span class="cm"># 非空字符串→True</span>
+<span class="kw">if</span> mylist:    <span class="cm"># 非空列表→True</span>
+
+<span class="cm"># Java/C# 必须写 .length() &gt; 0</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>&#x26a0; 易错点</h3>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Java/C#</th><th>Python</th><th>说明</th></tr>
+    <tr><td><span class="java-code">true</span> / <span class="java-code">false</span></td><td><span class="py-code">True</span> / <span class="py-code">False</span></td><td>首字母大写</td></tr>
+    <tr><td><span class="java-code">null</span></td><td><span class="py-code">None</span></td><td>不是 <span class="py-code">null</span>，是 <span class="py-code">None</span></td></tr>
+    <tr><td><span class="java-code">&amp;&amp; || !</span></td><td><span class="py-code">and or not</span></td><td>英文单词，不是符号</td></tr>
+    <tr><td><span class="java-code">==</span> 判 null</td><td><span class="py-code">is None</span> / <span class="py-code">is not None</span></td><td><span class="py-code">is</span> 判身份，<span class="py-code">==</span> 判值</td></tr>
+    <tr><td><span class="java-code">a ? b : c</span></td><td><span class="py-code">b if a else c</span></td><td>条件在中间，更像自然语言</td></tr>
+    <tr><td><span class="java-code">if (x != null &amp;&amp; x.length() &gt; 0)</span></td><td><span class="py-code">if x:</span></td><td>直接真值判断即可</td></tr>
+  </table>
+  </div>
+</div>
+</section>
+
+<!-- ==================== 列表 ==================== -->
+<section id="list">
+<h2 class="section-title">&#x1f4cb; 列表 (List)</h2>
+<div class="section-desc">Python 的 <span class="inline-code">list</span> ≈ Java 的 <span class="inline-code">ArrayList</span> / C# 的 <span class="inline-code">List&lt;T&gt;</span>，但更灵活。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="cm">// Java</span>
+<span class="tp">List</span>&lt;<span class="tp">String</span>&gt; list =
+    <span class="kw">new</span> <span class="tp">ArrayList</span>&lt;&gt;();
+list.<span class="fn">add</span>(<span class="str">"a"</span>);
+list.<span class="fn">get</span>(<span class="num">0</span>);
+list.<span class="fn">size</span>();
+
+<span class="cm">// C#</span>
+<span class="kw">var</span> list = <span class="kw">new</span> <span class="tp">List</span>&lt;<span class="kw">string</span>&gt;();
+list.<span class="fn">Add</span>(<span class="str">"a"</span>);
+list[<span class="num">0</span>];
+list.<span class="fn">Count</span>;</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="cm"># 直接创建</span>
+nums = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]
+mixed = [<span class="num">1</span>, <span class="str">"hi"</span>, <span class="num">3.14</span>]  <span class="cm"># 可混装不同类型</span>
+
+<span class="cm"># 常用操作</span>
+nums.<span class="fn">append</span>(<span class="num">4</span>)     <span class="cm"># 尾部追加 [1,2,3,4]</span>
+nums.<span class="fn">insert</span>(<span class="num">0</span>, <span class="num">0</span>)  <span class="cm"># 指定位置插入</span>
+nums.<span class="fn">pop</span>()          <span class="cm"># 弹出末尾（栈）</span>
+nums.<span class="fn">pop</span>(<span class="num">0</span>)        <span class="cm"># 弹出指定位置</span>
+nums.<span class="fn">remove</span>(<span class="num">2</span>)     <span class="cm"># 移除第一个匹配值</span>
+nums[<span class="num">0</span>]             <span class="cm"># 索引访问</span>
+<span class="fn">len</span>(nums)          <span class="cm"># 长度（函数）</span>
+
+<span class="cm"># 切片（字符串同样支持）</span>
+nums[<span class="num">1</span>:<span class="num">3</span>]          <span class="cm"># 子列表</span>
+nums[::<span class="num">-1</span>]         <span class="cm"># 反转</span>
+
+<span class="cm"># 列表推导式（见推导式章节）</span>
+squares = [x**<span class="num">2</span> <span class="kw">for</span> x <span class="kw">in</span> nums]</div>
+  </div>
+</div>
+
+<div class="tip-box">
+  <strong>&#x1f4a1; 与 Java/C# 的重要区别：</strong>
+  <span class="inline-code">len()</span> 是函数而不是方法（Java 的 <span class="inline-code">.length</span> / <span class="inline-code">.size()</span>）。
+  列表可以包含不同类型。负索引从末尾开始（<span class="inline-code">list[-1]</span> 是最后一个元素）。
+</div>
+</section>
+
+<!-- ==================== 元组 ==================== -->
+<section id="tuple">
+<h2 class="section-title">&#x1f4cc; 元组 (Tuple)</h2>
+<div class="section-desc">不可变的列表。Java/C# 没有直接对应（C# 有 <span class="inline-code">ValueTuple</span> 但用途不同）。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header py">Python 元组</div>
+    <div class="body"><span class="cm"># 创建元组</span>
+t = (<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>)
+single = (<span class="num">1</span>,)  <span class="cm"># 单个元素必须加逗号！</span>
+no_paren = <span class="num">1</span>, <span class="num">2</span>  <span class="cm"># 也可以不加括号</span>
+
+<span class="cm"># 元组不可变</span>
+t[<span class="num">0</span>] = <span class="num">99</span>  <span class="cm"># &#x2716; TypeError!</span>
+
+<span class="cm"># 解包（非常实用！）</span>
+x, y, z = (<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>)
+<span class="cm"># x=1, y=2, z=3</span>
+
+<span class="cm"># 交换变量</span>
+a, b = b, a     <span class="cm"># 一行交换！</span>
+
+<span class="cm"># 函数返回多个值（实质是元组）</span>
+<span class="kw">def</span> <span class="fn">min_max</span>(lst):
+    <span class="kw">return</span> <span class="fn">min</span>(lst), <span class="fn">max</span>(lst)
+
+mn, mx = <span class="fn">min_max</span>([<span class="num">3</span>,<span class="num">1</span>,<span class="num">4</span>,<span class="num">1</span>])
+<span class="cm"># mn=1, mx=4</span></div>
+  </div>
+  <div class="code-block">
+    <div class="header java">Java / C# 对应写法</div>
+    <div class="body"><span class="cm">// Java 无原生元组，需自定义类</span>
+<span class="cm">// 或使用 Map.Entry / List</span>
+<span class="tp">List</span>&lt;<span class="tp">Integer</span>&gt; t =
+    <span class="tp">List</span>.<span class="fn">of</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>);
+
+<span class="cm">// C# 有 ValueTuple</span>
+<span class="kw">var</span> t = (<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>);
+t.Item1; <span class="cm">// 命名：t.x</span>
+<span class="kw">var</span> (x, y, z) = t; <span class="cm">// 解构</span>
+
+<span class="cm">// 交换（Java 无原生）</span>
+<span class="cm">// C#: (a, b) = (b, a);</span></div>
+  </div>
+</div>
+
+<div class="comment-box">
+  <strong>&#x1f4dd; 注意：</strong>
+  元组的<strong>解包</strong>是 Python 非常常用的特性——
+  函数返回多值、循环中拆解、变量交换等场景每天都在用。
+  注意单元素元组必须加逗号 <span class="inline-code">(1,)</span>！
+</div>
+</section>
+
+<!-- ==================== 字典 ==================== -->
+<section id="dict">
+<h2 class="section-title">&#x1f4e6; 字典 (Dict)</h2>
+<div class="section-desc">Python 的 <span class="inline-code">dict</span> ≈ Java <span class="inline-code">HashMap</span> / C# <span class="inline-code">Dictionary</span>。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="cm">// Java</span>
+<span class="tp">Map</span>&lt;<span class="tp">String</span>, <span class="tp">Integer</span>&gt; m =
+    <span class="kw">new</span> <span class="tp">HashMap</span>&lt;&gt;();
+m.<span class="fn">put</span>(<span class="str">"key"</span>, <span class="num">1</span>);
+m.<span class="fn">get</span>(<span class="str">"key"</span>);
+m.<span class="fn">containsKey</span>(<span class="str">"key"</span>);
+<span class="kw">for</span> (<span class="tp">String</span> k : m.<span class="fn">keySet</span>()) { }
+
+<span class="cm">// C#</span>
+<span class="kw">var</span> m = <span class="kw">new</span> <span class="tp">Dictionary</span>&lt;<span class="kw">string</span>, <span class="kw">int</span>&gt;();
+m[<span class="str">"key"</span>] = <span class="num">1</span>;</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="cm"># 创建</span>
+d = {<span class="str">"name"</span>: <span class="str">"Alice"</span>, <span class="str">"age"</span>: <span class="num">30</span>}
+d2 = <span class="fn">dict</span>(name=<span class="str">"Bob"</span>, age=<span class="num">25</span>)  <span class="cm"># 关键字构造</span>
+
+<span class="cm"># 操作</span>
+d[<span class="str">"name"</span>]         <span class="cm"># = "Alice"（key不存在时 KeyError）</span>
+d.<span class="fn">get</span>(<span class="str">"name"</span>)      <span class="cm"># = "Alice"（不存在返回 None）</span>
+d.<span class="fn">get</span>(<span class="str">"x"</span>, <span class="num">0</span>)       <span class="cm"># 不存在返回默认值 0</span>
+d[<span class="str">"x"</span>] = <span class="num">5</span>           <span class="cm"># 设置/新增</span>
+d.<span class="fn">keys</span>()            <span class="cm"># 所有key</span>
+d.<span class="fn">values</span>()          <span class="cm"># 所有value</span>
+d.<span class="fn">items</span>()           <span class="cm"># (key, value) 对</span>
+<span class="str">"name"</span> <span class="kw">in</span> d        <span class="cm"># True（成员检测）</span>
+<span class="fn">len</span>(d)             <span class="cm"># 条目数</span>
+
+<span class="cm"># 遍历</span>
+<span class="kw">for</span> k, v <span class="kw">in</span> d.<span class="fn">items</span>():
+    <span class="fn">print</span>(k, v)</div>
+  </div>
+</div>
+
+<div class="tip-box">
+  <strong>&#x1f4a1; Python 特色：</strong>
+  用 <span class="inline-code">in</span> 判断 key 是否存在（比 Java 的 <span class="inline-code">containsKey()</span> 更自然）。
+  <span class="inline-code">.items()</span> 配合元组解包遍历是惯用写法。
+  <span class="inline-code">.get()</span> 可设默认值，避免 KeyError。
+</div>
+</section>
+
+<!-- ==================== 集合 ==================== -->
+<section id="set">
+<h2 class="section-title">&#x235f; 集合 (Set)</h2>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="cm">// Java</span>
+<span class="tp">Set</span>&lt;<span class="tp">String</span>&gt; s =
+    <span class="kw">new</span> <span class="tp">HashSet</span>&lt;&gt;();
+s.<span class="fn">add</span>(<span class="str">"a"</span>);
+s.<span class="fn">contains</span>(<span class="str">"a"</span>);
+s.<span class="fn">remove</span>(<span class="str">"a"</span>);
+
+<span class="cm">// C#</span>
+<span class="kw">var</span> s = <span class="kw">new</span> <span class="tp">HashSet</span>&lt;<span class="kw">string</span>&gt;();</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="cm"># 创建（注意不能用 {} 创空集！</span>
+<span class="cm"># {} 是空字典）</span>
+s = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>}
+empty = <span class="fn">set</span>()  <span class="cm"># 空集合必须用 set()</span>
+
+<span class="cm"># 操作</span>
+s.<span class="fn">add</span>(<span class="num">4</span>)
+s.<span class="fn">remove</span>(<span class="num">4</span>)     <span class="cm"># 不存在则 KeyError</span>
+s.<span class="fn">discard</span>(<span class="num">4</span>)    <span class="cm"># 不存在也不报错</span>
+<span class="num">3</span> <span class="kw">in</span> s          <span class="cm"># 成员检测</span>
+
+<span class="cm"># 集合运算</span>
+a = {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>}; b = {<span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>}
+a | b   <span class="cm"># 并集 {1,2,3,4,5}</span>
+a &amp; b   <span class="cm"># 交集 {3}</span>
+a - b   <span class="cm"># 差集 {1,2}</span>
+a ^ b   <span class="cm"># 对称差 {1,2,4,5}</span></div>
+  </div>
+</div>
+</section>
+
+<!-- ==================== if ==================== -->
+<section id="if">
+<h2 class="section-title">&#x1f500; if / elif / else</h2>
+<div class="section-desc">注意：没有括号、没有 <span class="inline-code">switch</span>（Python 3.10+ 有 <span class="inline-code">match</span>）、条件后跟冒号。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="kw">if</span> (score &gt;= <span class="num">90</span>) {
+    <span class="fn">System</span>.out.<span class="fn">println</span>(<span class="str">"A"</span>);
+} <span class="kw">else if</span> (score &gt;= <span class="num">80</span>) {
+    <span class="fn">System</span>.out.<span class="fn">println</span>(<span class="str">"B"</span>);
+} <span class="kw">else</span> {
+    <span class="fn">System</span>.out.<span class="fn">println</span>(<span class="str">"C"</span>);
+}
+
+<span class="cm">// switch (Java 14+)</span>
+<span class="kw">switch</span> (day) {
+    <span class="kw">case</span> <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span> -&gt; <span class="str">"weekday"</span>;
+    <span class="kw">case</span> <span class="num">6</span>, <span class="num">7</span> -&gt; <span class="str">"weekend"</span>;
+    <span class="kw">default</span> -&gt; <span class="str">"invalid"</span>;
+}</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="kw">if</span> score &gt;= <span class="num">90</span>:
+    <span class="fn">print</span>(<span class="str">"A"</span>)
+<span class="kw">elif</span> score &gt;= <span class="num">80</span>:       <span class="cm"># 注意是 elif 不是 else if</span>
+    <span class="fn">print</span>(<span class="str">"B"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"C"</span>)
+
+<span class="cm"># match-case（Python 3.10+）</span>
+<span class="cm"># 类似 switch，支持模式匹配</span>
+<span class="kw">match</span> day:
+    <span class="kw">case</span> <span class="num">1</span> | <span class="num">2</span> | <span class="num">3</span>:
+        <span class="fn">print</span>(<span class="str">"weekday"</span>)
+    <span class="kw">case</span> <span class="num">6</span> | <span class="num">7</span>:
+        <span class="fn">print</span>(<span class="str">"weekend"</span>)
+    <span class="kw">case</span> _:
+        <span class="fn">print</span>(<span class="str">"invalid"</span>)</div>
+  </div>
+</div>
+
+<div class="comment-box">
+  <strong>&#x1f4dd; 关键语法规则：</strong>
+  <span class="inline-code">elif</span>（不是 <span class="inline-code">else if</span>）、条件后必须跟 <span class="inline-code">:</span>、
+  代码块通过<strong>缩进</strong>（通常 4 空格）区分，不需要括号。
+  没有 <span class="inline-code">switch</span> 关键字，3.10+ 可用 <span class="inline-code">match</span>。
+</div>
+</section>
+
+<!-- ==================== 循环 ==================== -->
+<section id="loop">
+<h2 class="section-title">&#x1f504; 循环</h2>
+<div class="section-desc">Python 的 <span class="inline-code">for</span> 实际上是 foreach，<span class="inline-code">range()</span> 替代了传统计数循环。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="cm">// 计数循环</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; <span class="num">5</span>; i++) { }
+
+<span class="cm">// foreach</span>
+<span class="kw">for</span> (<span class="tp">String</span> s : list) { }
+<span class="cm">// C#: foreach (var s in list)</span>
+
+<span class="cm">// 带索引遍历</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; list.<span class="fn">size</span>(); i++) {
+    <span class="tp">String</span> s = list.<span class="fn">get</span>(i);
+}
+
+<span class="cm">// while</span>
+<span class="kw">while</span> (condition) { }</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="cm"># range() 替代计数循环</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>):       <span class="cm"># 0,1,2,3,4</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>, <span class="num">5</span>):    <span class="cm"># 2,3,4</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">0</span>, <span class="num">5</span>, <span class="num">2</span>): <span class="cm"># 0,2,4（步进）</span>
+
+<span class="cm"># 遍历集合</span>
+<span class="kw">for</span> s <span class="kw">in</span> list:
+    <span class="fn">print</span>(s)
+
+<span class="cm"># 带索引枚举</span>
+<span class="kw">for</span> i, s <span class="kw">in</span> <span class="fn">enumerate</span>(list):
+    <span class="fn">print</span>(i, s)  <span class="cm"># 0 item1, 1 item2...</span>
+
+<span class="cm"># while</span>
+<span class="kw">while</span> condition:
+    <span class="fn">print</span>(<span class="str">"..."</span>)
+
+<span class="cm"># break / continue 同样支持</span>
+<span class="kw">for</span> x <span class="kw">in</span> <span class="fn">range</span>(<span class="num">10</span>):
+    <span class="kw">if</span> x == <span class="num">3</span>:
+        <span class="kw">continue</span>  <span class="cm"># 跳过本次</span>
+    <span class="kw">if</span> x == <span class="num">7</span>:
+        <span class="kw">break</span>     <span class="cm"># 终止循环</span>
+    <span class="fn">print</span>(x)   <span class="cm"># 0,1,2,4,5,6</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3><span class="tag key">&#x1f50d</span> range() 用法速查</h3>
+  <div class="table-wrap">
+  <table>
+    <tr><th>写法</th><th>结果</th><th>说明</th></tr>
+    <tr><td><span class="py-code">range(5)</span></td><td><span class="py-code">0, 1, 2, 3, 4</span></td><td>从 0 到 n-1</td></tr>
+    <tr><td><span class="py-code">range(2, 5)</span></td><td><span class="py-code">2, 3, 4</span></td><td>从 start 到 stop-1</td></tr>
+    <tr><td><span class="py-code">range(0, 10, 2)</span></td><td><span class="py-code">0, 2, 4, 6, 8</span></td><td>指定步进</td></tr>
+    <tr><td><span class="py-code">range(5, 0, -1)</span></td><td><span class="py-code">5, 4, 3, 2, 1</span></td><td>负数步进（递减）</td></tr>
+  </table>
+  </div>
+</div>
+</section>
+
+<!-- ==================== 函数 ==================== -->
+<section id="func">
+<h2 class="section-title">&#x1f3ad; 函数</h2>
+<div class="section-desc">Python 用 <span class="inline-code">def</span> 定义函数，支持默认参数、可变参数、关键字参数。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="cm">// Java（必须在类中）</span>
+<span class="kw">public int</span> <span class="fn">add</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+    <span class="kw">return</span> a + b;
+}
+
+<span class="cm">// 重载（Overload）</span>
+<span class="kw">public int</span> <span class="fn">add</span>(<span class="kw">int</span> a, <span class="kw">int</span> b, <span class="kw">int</span> c) { }
+
+<span class="cm">// 默认参数（C#）</span>
+<span class="kw">int</span> <span class="fn">Add</span>(<span class="kw">int</span> a, <span class="kw">int</span> b = <span class="num">0</span>) { }
+<span class="cm">// Java 不支持默认参数</span></div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="cm"># 函数可以在模块任意位置定义</span>
+<span class="kw">def</span> <span class="fn">add</span>(a, b):
+    <span class="kw">return</span> a + b
+
+<span class="cm"># 默认参数</span>
+<span class="kw">def</span> <span class="fn">greet</span>(name, greeting=<span class="str">"Hello"</span>):
+    <span class="kw">return</span> <span class="str">f"<span class="str">{greeting}</span>, <span class="str">{name}</span>!"</span>
+
+<span class="cm"># 关键字参数（调用时指名）</span>
+<span class="fn">greet</span>(greeting=<span class="str">"Hi"</span>, name=<span class="str">"Bob"</span>)
+
+<span class="cm"># 可变参数 *args（类似 Java 的 ...）</span>
+<span class="kw">def</span> <span class="fn">sum_all</span>(*nums):
+    <span class="kw">return</span> <span class="fn">sum</span>(nums)  <span class="cm"># nums 是元组</span>
+<span class="fn">sum_all</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>)        <span class="cm"># 6</span>
+
+<span class="cm"># 关键字可变参数 **kwargs</span>
+<span class="kw">def</span> <span class="fn">print_kw</span>(**kwargs):
+    <span class="kw">for</span> k, v <span class="kw">in</span> kwargs.<span class="fn">items</span>():
+        <span class="fn">print</span>(k, v)
+<span class="fn">print_kw</span>(name=<span class="str">"A"</span>, age=<span class="num">30</span>)
+
+<span class="cm"># 类型注解（可选）</span>
+<span class="kw">def</span> <span class="fn">add</span>(a: <span class="kw">int</span>, b: <span class="kw">int</span>) -&gt; <span class="kw">int</span>:
+    <span class="kw">return</span> a + b</div>
+  </div>
+</div>
+
+<div class="comment-box">
+  <strong>&#x1f4dd; 注意：</strong>
+  Python 不支持重载（同名不同参的函数）—— 用默认参数和 <span class="inline-code">*args</span> 替代。
+  <span class="inline-code">*args</span> 收集额外位置参数为元组，<span class="inline-code">**kwargs</span> 收集关键字参数为字典。
+  函数是一等公民，可以赋值给变量、作为参数传递（类似 C# 委托 / Java 函数式接口）。
+</div>
+</section>
+
+<!-- ==================== 推导式 ==================== -->
+<section id="comprehension">
+<h2 class="section-title">&#x2728; 推导式 (Comprehension)</h2>
+<div class="section-desc">Python 最优雅的特性之一 —— 一行代码生成列表/字典/集合。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C# 传统写法</div>
+    <div class="body"><span class="cm">// Java</span>
+<span class="tp">List</span>&lt;<span class="tp">Integer</span>&gt; squares =
+    <span class="kw">new</span> <span class="tp">ArrayList</span>&lt;&gt;();
+<span class="kw">for</span> (<span class="kw">int</span> x : nums) {
+    squares.<span class="fn">add</span>(x * x);
+}
+
+<span class="cm">// C# LINQ</span>
+<span class="kw">var</span> squares = nums
+    .<span class="fn">Select</span>(x =&gt; x * x)
+    .<span class="fn">ToList</span>();</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python 推导式</div>
+    <div class="body"><span class="cm"># 列表推导式（最常用）</span>
+squares = [x**<span class="num">2</span> <span class="kw">for</span> x <span class="kw">in</span> <span class="fn">range</span>(<span class="num">10</span>)]
+<span class="cm"># [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]</span>
+
+<span class="cm"># 带条件过滤</span>
+evens = [x <span class="kw">for</span> x <span class="kw">in</span> <span class="fn">range</span>(<span class="num">20</span>) <span class="kw">if</span> x % <span class="num">2</span> == <span class="num">0</span>]
+<span class="cm"># [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]</span>
+
+<span class="cm"># 字典推导式</span>
+square_dict = {x: x**<span class="num">2</span> <span class="kw">for</span> x <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>)}
+<span class="cm"># {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}</span>
+
+<span class="cm"># 集合推导式</span>
+unique = {x % <span class="num">3</span> <span class="kw">for</span> x <span class="kw">in</span> <span class="fn">range</span>(<span class="num">10</span>)}
+<span class="cm"># {0, 1, 2}</span>
+
+<span class="cm"># 嵌套循环</span>
+pairs = [(x, y) <span class="kw">for</span> x <span class="kw">in</span> [<span class="num">1</span>,<span class="num">2</span>] <span class="kw">for</span> y <span class="kw">in</span> [<span class="str">"a"</span>,<span class="str">"b"</span>]]
+<span class="cm"># [(1,'a'), (1,'b'), (2,'a'), (2,'b')]</span></div>
+  </div>
+</div>
+
+<div class="tip-box">
+  <strong>&#x2728; 语法：</strong>
+  <span class="inline-code">[表达式 for 变量 in 可迭代对象 if 条件]</span>
+  顺序与普通 for 循环一致。多加练习后会非常自然。
+  可读性强且性能优于手写循环（底层 C 实现）。
+</div>
+</section>
+
+<!-- ==================== Lambda ==================== -->
+<section id="lambda">
+<h2 class="section-title">&#x03bb; Lambda 表达式</h2>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="cm">// Java</span>
+<span class="tp">Function</span>&lt;<span class="tp">Integer</span>, <span class="tp">Integer</span>&gt; f =
+    x -&gt; x * x;
+list.<span class="fn">stream</span>()
+    .<span class="fn">filter</span>(x -&gt; x &gt; <span class="num">5</span>)
+    .<span class="fn">map</span>(x -&gt; x * <span class="num">2</span>)
+    .<span class="fn">collect</span>(...);
+
+<span class="cm">// C#</span>
+<span class="tp">Func</span>&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt; f = x =&gt; x * x;
+list.<span class="fn">Where</span>(x =&gt; x &gt; <span class="num">5</span>)
+    .<span class="fn">Select</span>(x =&gt; x * <span class="num">2</span>);</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="cm"># lambda 参数: 表达式</span>
+f = <span class="kw">lambda</span> x: x * x
+<span class="fn">print</span>(<span class="fn">f</span>(<span class="num">5</span>))  <span class="cm"># 25</span>
+
+<span class="cm"># 与 map/filter 配合</span>
+result = <span class="fn">list</span>(<span class="fn">map</span>(<span class="kw">lambda</span> x: x*<span class="num">2</span>,
+                   <span class="fn">filter</span>(<span class="kw">lambda</span> x: x &gt; <span class="num">5</span>,
+                           [<span class="num">1</span>,<span class="num">3</span>,<span class="num">6</span>,<span class="num">8</span>])))
+<span class="cm"># [12, 16]</span>
+
+<span class="cm"># 排序自定义key</span>
+pairs = [(<span class="num">1</span>,<span class="str">"b"</span>), (<span class="num">3</span>,<span class="str">"a"</span>), (<span class="num">2</span>,<span class="str">"c"</span>)]
+pairs.<span class="fn">sort</span>(key=<span class="kw">lambda</span> x: x[<span class="num">1</span>])
+<span class="cm"># [(3,'a'), (1,'b'), (2,'c')]</span>
+
+<span class="cm"># 更多时候用推导式替代 map/filter</span>
+result = [x*<span class="num">2</span> <span class="kw">for</span> x <span class="kw">in</span> [<span class="num">1</span>,<span class="num">3</span>,<span class="num">6</span>,<span class="num">8</span>] <span class="kw">if</span> x &gt; <span class="num">5</span>]</div>
+  </div>
+</div>
+
+<div class="comment-box">
+  <strong>&#x1f4dd; Python 的 lambda 有<strong>一个限制</strong>：</strong>
+  主体只能是一个表达式（不能写语句、不能赋值）。
+  对于复杂逻辑，用普通 <span class="inline-code">def</span> 函数更清晰。
+  在实际 Python 代码中，<strong>列表推导式比 map/filter + lambda 更常见</strong>。
+</div>
+</section>
+
+<!-- ==================== 类 ==================== -->
+<section id="class">
+<h2 class="section-title">&#x1f3e0; 类与面向对象</h2>
+<div class="section-desc">Python 的 OOP 更灵活：没有 <span class="inline-code">private</span> / <span class="inline-code">protected</span> 关键字，全靠约定。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="kw">public class</span> <span class="tp">Animal</span> {
+    <span class="kw">private</span> <span class="tp">String</span> name;
+
+    <span class="kw">public</span> <span class="fn">Animal</span>(<span class="tp">String</span> name) {
+        <span class="kw">this</span>.name = name;
+    }
+
+    <span class="kw">public void</span> <span class="fn">speak</span>() {
+        <span class="tp">System</span>.out.<span class="fn">println</span>(
+            <span class="str">"..."</span>);
+    }
+}
+
+<span class="kw">public class</span> <span class="tp">Dog</span>
+        <span class="kw">extends</span> <span class="tp">Animal</span> {
+    <span class="kw">public</span> <span class="fn">Dog</span>(<span class="tp">String</span> name) {
+        <span class="kw">super</span>(name);
+    }
+
+    <span class="hl-meta">@Override</span>
+    <span class="kw">public void</span> <span class="fn">speak</span>() {
+        <span class="tp">System</span>.out.<span class="fn">println</span>(
+            <span class="str">"Woof!"</span>);
+    }
+}</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="kw">class</span> <span class="tp">Animal</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, name):
+        <span class="kw">self</span>.name = name  <span class="cm"># 公开属性</span>
+
+    <span class="kw">def</span> <span class="fn">speak</span>(<span class="kw">self</span>):
+        <span class="fn">print</span>(<span class="str">"..."</span>)
+
+<span class="kw">class</span> <span class="tp">Dog</span>(<span class="tp">Animal</span>):  <span class="cm"># 继承</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, name):
+        <span class="kw">super</span>().<span class="fn">__init__</span>(name)
+
+    <span class="kw">def</span> <span class="fn">speak</span>(<span class="kw">self</span>):  <span class="cm"># 自动覆写</span>
+        <span class="fn">print</span>(<span class="str">"Woof!"</span>)
+
+<span class="cm"># 使用</span>
+d = <span class="tp">Dog</span>(<span class="str">"Rex"</span>)
+d.<span class="fn">speak</span>()       <span class="cm"># Woof!</span>
+<span class="fn">print</span>(d.name)    <span class="cm"># 直接访问属性（无 getter）</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3><span class="tag key">&#x1f50d</span> Python OOP 关键点</h3>
+  <div class="table-wrap">
+  <table>
+    <tr><th>概念</th><th>Java/C#</th><th>Python</th></tr>
+    <tr><td>构造方法</td><td><span class="java-code">ClassName()</span></td><td><span class="py-code">__init__()</span></td></tr>
+    <tr><td>当前实例</td><td><span class="java-code">this</span></td><td><span class="py-code">self</span>（约定名称，必须显式写）</td></tr>
+    <tr><td>私有化</td><td><span class="java-code">private</span> 关键字</td><td><span class="py-code">_name</span>（下划线前缀为约定，非强制）</td></tr>
+    <tr><td>隐藏私有</td><td>（同上）</td><td><span class="py-code">__name</span>（双下划线触发名称修饰）</td></tr>
+    <tr><td>toString</td><td><span class="java-code">toString()</span></td><td><span class="py-code">__str__()</span></td></tr>
+    <tr><td>运算符重载</td><td>有限支持</td><td><span class="py-code">__add__</span>、<span class="py-code">__eq__</span> 等（全面支持）</td></tr>
+    <tr><td>属性</td><td>Getter/Setter</td><td><span class="py-code">@property</span> 装饰器</td></tr>
+    <tr><td>接口</td><td><span class="java-code">interface</span></td><td><span class="py-code">ABC</span>（抽象基类，更推荐鸭子类型）</td></tr>
+    <tr><td>静态方法</td><td><span class="java-code">static</span></td><td><span class="py-code">@staticmethod</span></td></tr>
+    <tr><td>类方法</td><td>（不常见）</td><td><span class="py-code">@classmethod</span></td></tr>
+  </table>
+  </div>
+</div>
+
+<div class="tip-box">
+  <strong>&#x1f4a1; 核心设计哲学：</strong>
+  Python 使用<strong>鸭子类型</strong>而非接口继承 —— "如果它走起来像鸭子，那它就是鸭子"。
+  你不需要定义一个 <span class="inline-code">Animal</span> 接口然后让 <span class="inline-code">Dog</span> 实现它；
+  只需要确保 <span class="inline-code">Dog</span> 有 <span class="inline-code">speak()</span> 方法即可。
+  所有方法默认<strong>虚方法</strong> —— 子类直接覆写，无需 <span class="inline-code">virtual</span> / <span class="inline-code">override</span>。
+</div>
+</section>
+
+<!-- ==================== 异常 ==================== -->
+<section id="exception">
+<h2 class="section-title">&#x26a0; 异常处理</h2>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="kw">try</span> {
+    <span class="fn">riskyOperation</span>();
+} <span class="kw">catch</span> (<span class="tp">IOException</span> e) {
+    <span class="fn">log</span>(e);
+} <span class="kw">finally</span> {
+    <span class="fn">cleanup</span>();
+}
+
+<span class="cm">// Java: 受检异常必须声明</span>
+<span class="cm">// C#: 所有异常都非受检</span>
+
+<span class="cm">// C# using (自动释放)</span>
+<span class="kw">using</span> (<span class="kw">var</span> r =
+    <span class="kw">new</span> <span class="tp">StreamReader</span>(<span class="str">"f"</span>)) { }</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="kw">try</span>:
+    <span class="fn">risky_operation</span>()
+<span class="kw">except</span> <span class="tp">ValueError</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(e)
+<span class="kw">except</span> (<span class="tp">TypeError</span>, <span class="tp">ZeroDivisionError</span>):
+    <span class="fn">print</span>(<span class="str">"multiple exceptions"</span>)
+<span class="kw">except</span>:                          <span class="cm"># 捕获所有（不推荐）</span>
+    <span class="fn">print</span>(<span class="str">"unknown"</span>)
+<span class="kw">else</span>:                            <span class="cm"># 无异常时执行（独特！）</span>
+    <span class="fn">print</span>(<span class="str">"success"</span>)
+<span class="kw">finally</span>:                         <span class="cm"># 始终执行</span>
+    <span class="fn">cleanup</span>()
+
+<span class="cm"># 抛出异常</span>
+<span class="kw">raise</span> <span class="tp">ValueError</span>(<span class="str">"invalid value"</span>)
+
+<span class="cm"># 自定义异常</span>
+<span class="kw">class</span> <span class="tp">MyError</span>(<span class="tp">Exception</span>):
+    <span class="kw">pass</span></div>
+  </div>
+</div>
+
+<div class="comment-box">
+  <strong>&#x1f4dd; Python 异常特色：</strong>
+  <span class="inline-code">else</span> 分支在 try 块无异常时执行 —— Java/C# 没有对应概念。
+  没有受检异常（类似 C#，所有异常都是运行时）。
+  Python 使用 <span class="inline-code">except ... as e</span>（不是 <span class="inline-code">catch</span> 和 <span class="inline-code">|</span>）。
+</div>
+</section>
+
+<!-- ==================== 模块 ==================== -->
+<section id="module">
+<h2 class="section-title">&#x1f4e6; 模块与包</h2>
+<div class="section-desc">每个 <span class="inline-code">.py</span> 文件就是一个模块，目录加 <span class="inline-code">__init__.py</span> 就成了包。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="cm">// Java 导入</span>
+<span class="kw">import</span> java.util.List;
+<span class="kw">import</span> java.util.*;
+<span class="kw">import static</span> java.lang.Math.*;
+
+<span class="cm">// C# using</span>
+<span class="kw">using</span> System.Collections.Generic;</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="cm"># 导入模块</span>
+<span class="kw">import</span> os
+<span class="kw">import</span> os.path
+<span class="kw">from</span> math <span class="kw">import</span> pi, sqrt
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime <span class="kw">as</span> dt
+<span class="kw">from</span> collections <span class="kw">import</span> *
+
+<span class="cm"># 使用</span>
+os.<span class="fn">listdir</span>(<span class="str">"."</span>)
+<span class="fn">sqrt</span>(<span class="num">16</span>)  <span class="cm"># 4.0</span>
+dt.<span class="fn">now</span>()  <span class="cm"># 当前时间</span>
+
+<span class="cm"># 查看模块路径</span>
+<span class="fn">print</span>(os.__file__)
+
+<span class="cm"># 模块导入路径</span>
+<span class="fn">print</span>(sys.path)  <span class="cm"># 搜索路径列表</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>模块 vs 包</h3>
+  <div class="table-wrap">
+  <table>
+    <tr><th></th><th>Java/C#</th><th>Python</th></tr>
+    <tr><td>文件 = 模块</td><td><span class="java-code">Foo.java</span> → 类 <span class="java-code">Foo</span></td><td><span class="py-code">foo.py</span> → 模块 <span class="py-code">foo</span>（可直接执行）</td></tr>
+    <tr><td>目录 = 包</td><td>需 <span class="java-code">package</span> 声明</td><td><span class="py-code">__init__.py</span> 文件标识目录为包</td></tr>
+    <tr><td>导入别名</td><td>不支持（需完全限定名）</td><td><span class="py-code">import x as y</span></td></tr>
+    <tr><td>通配导入</td><td><span class="java-code">import java.util.*</span></td><td><span class="py-code">from module import *</span></td></tr>
+  </table>
+  </div>
+</div>
+
+<div class="tip-box">
+  <strong>&#x1f4a1; __name__ == "__main__" 惯用法：</strong>
+  <span class="inline-code">if __name__ == "__main__":</span>
+  这行代码让一个 .py 文件既可以作为模块被导入，也可以作为脚本直接运行。
+  被导入时 <span class="inline-code">__name__</span> 是模块名，直接运行时是 <span class="inline-code">"__main__"</span>。
+  相当于 Java 的 <span class="inline-code">public static void main()</span> 入口。
+</div>
+</section>
+
+<!-- ==================== 文件 ==================== -->
+<section id="file">
+<h2 class="section-title">&#x1f4c4; 文件操作</h2>
+<div class="section-desc">Python 用 <span class="inline-code">with</span> 语句管理资源（类似 C# 的 <span class="inline-code">using</span>）。</div>
+
+<div class="compare-grid">
+  <div class="code-block">
+    <div class="header java">Java / C#</div>
+    <div class="body"><span class="cm">// Java try-with-resources</span>
+<span class="kw">try</span> (<span class="tp">BufferedReader</span> r =
+    <span class="kw">new</span> <span class="tp">BufferedReader</span>(
+        <span class="kw">new</span> <span class="tp">FileReader</span>(<span class="str">"f.txt"</span>))) {
+    r.<span class="fn">readLine</span>();
+}
+
+<span class="cm">// C# using</span>
+<span class="kw">using</span> (<span class="kw">var</span> r =
+    <span class="kw">new</span> <span class="tp">StreamReader</span>(<span class="str">"f.txt"</span>)) {
+    r.<span class="fn">ReadLine</span>();
+}</div>
+  </div>
+  <div class="code-block">
+    <div class="header py">Python</div>
+    <div class="body"><span class="cm"># 读取整个文件</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">"f.txt"</span>, <span class="str">"r"</span>) <span class="kw">as</span> f:
+    content = f.<span class="fn">read</span>()      <span class="cm"># 全部</span>
+    lines = f.<span class="fn">readlines</span>()  <span class="cm"># 行列表</span>
+    <span class="kw">for</span> line <span class="kw">in</span> f:          <span class="cm"># 逐行（最常用）</span>
+        <span class="fn">print</span>(line)
+
+<span class="cm"># 写入</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">"f.txt"</span>, <span class="str">"w"</span>) <span class="kw">as</span> f:
+    f.<span class="fn">write</span>(<span class="str">"hello\n"</span>)
+
+<span class="cm"># 追加</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">"f.txt"</span>, <span class="str">"a"</span>) <span class="kw">as</span> f:
+    f.<span class="fn">write</span>(<span class="str">"more\n"</span>)
+
+<span class="cm"># 模式</span>
+<span class="cm"># "r" 读取（默认）</span>
+<span class="cm"># "w" 写入（覆盖）</span>
+<span class="cm"># "a" 追加</span>
+<span class="cm"># "rb" 二进制读取</span>
+<span class="cm"># "wb" 二进制写入</span>
+
+<span class="cm"># with 块退出时自动关闭文件</span>
+<span class="cm"># 上下文管理器（context manager）</span></div>
+  </div>
+</div>
+
+<div class="tip-box">
+  <strong>&#x1f4a1; with 语句 = 自动资源管理：</strong>
+  类似 C# 的 <span class="inline-code">using</span> 和 Java 的 <span class="inline-code">try-with-resources</span>。
+  Python 的 <span class="inline-code">with</span> 不仅用于文件，还用于锁、数据库连接等需要自动清理的场景。
+  任何实现了 <span class="inline-code">__enter__</span> 和 <span class="inline-code">__exit__</span> 的对象都能用 <span class="inline-code">with</span>。
+</div>
+</section>
+
+<!-- ==================== 内置函数 ==================== -->
+<section id="builtins">
+<h2 class="section-title">&#x1f4a0; 常用内置函数</h2>
+<div class="section-desc">以下是你每天会用到的 Python 内置函数。</div>
+
+<div class="card">
+  <div class="table-wrap">
+  <table>
+    <tr><th>函数</th><th>示例</th><th>说明</th><th>Java/C# 对应</th></tr>
+    <tr>
+      <td><span class="py-code">print()</span></td>
+      <td><span class="py-code">print("hi", x, sep=",")</span></td>
+      <td>打印到控制台，支持多参数</td>
+      <td><span class="java-code">System.out.println()</span> / <span class="java-code">Console.WriteLine()</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">len()</span></td>
+      <td><span class="py-code">len(list), len(str)</span></td>
+      <td>获取长度（函数，不是方法）</td>
+      <td><span class="java-code">.length()</span> / <span class="java-code">.size()</span> / <span class="java-code">.Count</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">type()</span></td>
+      <td><span class="py-code">type(x)</span></td>
+      <td>返回变量类型</td>
+      <td><span class="java-code">x.getClass()</span> / <span class="java-code">x.GetType()</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">range()</span></td>
+      <td><span class="py-code">range(5), range(1,5)</span></td>
+      <td>生成整数序列</td>
+      <td><span class="java-code">for(int i=0; i&lt;n; i++)</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">enumerate()</span></td>
+      <td><span class="py-code">enumerate(list)</span></td>
+      <td>带索引遍历（索引, 值）</td>
+      <td><span class="java-code">for(int i=0;...)</span> / <span class="java-code">Select((v,i)=&gt;...)</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">zip()</span></td>
+      <td><span class="py-code">zip(list1, list2)</span></td>
+      <td>并行遍历多个集合</td>
+      <td>手动索引循环 / <span class="java-code">Enumerable.Zip()</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">sorted()</span></td>
+      <td><span class="py-code">sorted(list, key=..., reverse=...)</span></td>
+      <td>返回排序后的新列表</td>
+      <td><span class="java-code">Collections.sort()</span> / <span class="java-code">list.OrderBy()</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">map()</span></td>
+      <td><span class="py-code">map(fn, iterable)</span></td>
+      <td>映射函数（返回迭代器）</td>
+      <td><span class="java-code">stream().map()</span> / <span class="java-code">Select()</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">filter()</span></td>
+      <td><span class="py-code">filter(fn, iterable)</span></td>
+      <td>过滤函数（返回迭代器）</td>
+      <td><span class="java-code">stream().filter()</span> / <span class="java-code">Where()</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">sum()</span></td>
+      <td><span class="py-code">sum([1,2,3])</span></td>
+      <td>求和</td>
+      <td><span class="java-code">stream().sum()</span> / <span class="java-code">Sum()</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">any()</span></td>
+      <td><span class="py-code">any(x &gt; 0 for x in list)</span></td>
+      <td>任一元素为 True</td>
+      <td><span class="java-code">stream().anyMatch()</span> / <span class="java-code">Any()</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">all()</span></td>
+      <td><span class="py-code">all(x &gt; 0 for x in list)</span></td>
+      <td>全部元素为 True</td>
+      <td><span class="java-code">stream().allMatch()</span> / <span class="java-code">All()</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">isinstance()</span></td>
+      <td><span class="py-code">isinstance(x, int)</span></td>
+      <td>类型检查</td>
+      <td><span class="java-code">instanceof</span> / <span class="java-code">is</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">id()</span></td>
+      <td><span class="py-code">id(x)</span></td>
+      <td>对象内存地址</td>
+      <td><span class="java-code">System.identityHashCode()</span></td>
+    </tr>
+    <tr>
+      <td><span class="py-code">help()</span></td>
+      <td><span class="py-code">help(str)</span></td>
+      <td>查看帮助文档</td>
+      <td>无对应</td>
+    </tr>
+    <tr>
+      <td><span class="py-code">dir()</span></td>
+      <td><span class="py-code">dir(obj)</span></td>
+      <td>查看对象属性和方法</td>
+      <td>反射 / 智能提示</td>
+    </tr>
+  </table>
+  </div>
+</div>
+
+<div class="tip-box">
+  <strong>&#x1f4a1; zip() 并行遍历示例：</strong><br>
+  <span class="inline-code">names = ["Alice", "Bob"]</span><br>
+  <span class="inline-code">ages = [30, 25]</span><br>
+  <span class="inline-code">for name, age in zip(names, ages): print(name, age)</span><br>
+  输出：<span class="inline-code">Alice 30</span> 换行 <span class="inline-code">Bob 25</span>
+</div>
+</section>
+
+<!-- ==================== 装饰器 / with ==================== -->
+<section id="decorator">
+<h2 class="section-title">&#x1f3a8; 装饰器 &amp; 上下文管理器</h2>
+<div class="section-desc">两个 Python 高级特性，但日常经常用到。</div>
+
+<div class="card">
+  <h3>装饰器 <span class="tag new">&#x2b50 常用</span></h3>
+  <p style="color:var(--text-dim);font-size:14px;margin-bottom:16px;">
+    装饰器 = 接受函数并返回新函数的可调用对象。<span class="inline-code">@decorator</span> 是语法糖，
+    相当于 <span class="inline-code">func = decorator(func)</span>。类似 Java 的注解 + AOP 组合，或 C# 的 Attribute。
+  </p>
+  <div class="compare-grid">
+    <div class="code-block">
+      <div class="header py">定义与使用装饰器</div>
+      <div class="body"><span class="cm"># 定义装饰器</span>
+<span class="kw">def</span> <span class="fn">timer</span>(func):
+    <span class="kw">def</span> <span class="fn">wrapper</span>(*args, **kwargs):
+        start = <span class="fn">time</span>()
+        result = <span class="fn">func</span>(*args, **kwargs)
+        <span class="fn">print</span>(<span class="str">f"took <span class="str">{time()-start}</span>s"</span>)
+        <span class="kw">return</span> result
+    <span class="kw">return</span> wrapper
+
+<span class="cm"># 使用装饰器</span>
+@timer
+<span class="kw">def</span> <span class="fn">slow_func</span>():
+    <span class="fn">sleep</span>(<span class="num">1</span>)
+
+<span class="cm"># 调用时自动计时</span>
+<span class="fn">slow_func</span>()  <span class="cm"># 输出: took 1.0s</span>
+
+<span class="cm"># Python 内置装饰器</span>
+@<span class="kw">staticmethod</span>   <span class="cm"># 静态方法</span>
+@<span class="kw">classmethod</span>    <span class="cm"># 类方法</span>
+@property       <span class="cm"># 属性（替代 getter）</span></div>
+    </div>
+    <div class="code-block">
+      <div class="header java">Java / C# 对应</div>
+      <div class="body"><span class="cm">// Java 注解 + 反射/AOP</span>
+@Timed
+<span class="kw">public void</span> <span class="fn">slowMethod</span>() { }
+
+<span class="cm">// C# Attribute</span>
+[<span class="tp">Timed</span>]
+<span class="kw">public void</span> <span class="fn">SlowMethod</span>() { }
+
+<span class="cm">// Python @property 等价于：</span>
+<span class="cm">// C# 自动属性</span>
+<span class="kw">public string</span> Name { <span class="fn">get</span>; <span class="fn">set</span>; }
+
+<span class="cm">// Java lombok @Getter @Setter</span>
+@Getter @Setter
+<span class="kw">private</span> <span class="tp">String</span> name;</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>上下文管理器 &amp; with 语句 <span class="tag new">&#x2b50 常用</span></h3>
+  <p style="color:var(--text-dim);font-size:14px;margin-bottom:16px;">
+    <span class="inline-code">with</span> 语句自动管理资源的获取和释放。
+    任何实现了 <span class="inline-code">__enter__</span> 和 <span class="inline-code">__exit__</span> 的对象都可以用 <span class="inline-code">with</span>。
+    类似 C# 的 <span class="inline-code">using</span> 和 Java 的 <span class="inline-code">try-with-resources</span>。
+  </p>
+  <div class="compare-grid">
+    <div class="code-block">
+      <div class="header py">Python with 语句</div>
+      <div class="body"><span class="cm"># 文件自动关闭</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">"file.txt"</span>) <span class="kw">as</span> f:
+    data = f.<span class="fn">read</span>()
+<span class="cm"># 退出 with 块后自动 f.close()</span>
+
+<span class="cm"># 自定义上下文管理器</span>
+<span class="kw">class</span> <span class="tp">MyContext</span>:
+    <span class="kw">def</span> <span class="fn">__enter__</span>(<span class="kw">self</span>):
+        <span class="fn">print</span>(<span class="str">"enter"</span>)
+        <span class="kw">return</span> <span class="kw">self</span>
+
+    <span class="kw">def</span> <span class="fn">__exit__</span>(<span class="kw">self</span>, exc_type,
+                 exc_val, exc_tb):
+        <span class="fn">print</span>(<span class="str">"exit"</span>)
+
+<span class="kw">with</span> <span class="tp">MyContext</span>():
+    <span class="fn">print</span>(<span class="str">"inside"</span>)
+<span class="cm"># 输出: enter, inside, exit</span>
+
+<span class="cm"># @contextmanager 简化写法</span>
+<span class="kw">from</span> contextlib <span class="kw">import</span> contextmanager
+
+@contextmanager
+<span class="kw">def</span> <span class="fn">my_context</span>():
+    <span class="fn">print</span>(<span class="str">"enter"</span>)
+    <span class="kw">yield</span>       <span class="cm"># 这里是 with 块中执行</span>
+    <span class="fn">print</span>(<span class="str">"exit"</span>)</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ==================== 快速参考卡片 ==================== -->
+<section>
+<h2 class="section-title">&#x1f4d6; 快速参考卡片</h2>
+<div class="section-desc">日常最常用的 Python 语法速查。</div>
+
+<div class="card">
+  <h3>极简语法速查</h3>
+  <div class="table-wrap">
+  <table>
+    <tr><th>场景</th><th>Java/C# 写法</th><th>Python 写法</th></tr>
+    <tr><td>注释</td><td><span class="java-code">// 注释</span></td><td><span class="py-code"># 注释</span></td></tr>
+    <tr><td>打印</td><td><span class="java-code">System.out.println(x)</span></td><td><span class="py-code">print(x)</span></td></tr>
+    <tr><td>字符串格式化</td><td><span class="java-code">String.format("%s=%d", n, v)</span></td><td><span class="py-code">f"{name}={value}"</span></td></tr>
+    <tr><td>判断空</td><td><span class="java-code">if (s == null || s.isEmpty())</span></td><td><span class="py-code">if not s:</span></td></tr>
+    <tr><td>遍历列表</td><td><span class="java-code">for (String s : list)</span></td><td><span class="py-code">for s in list:</span></td></tr>
+    <tr><td>带索引遍历</td><td><span class="java-code">for (int i=0; i&lt;list.length; i++)</span></td><td><span class="py-code">for i, v in enumerate(list):</span></td></tr>
+    <tr><td>范围循环</td><td><span class="java-code">for (int i=0; i&lt;10; i++)</span></td><td><span class="py-code">for i in range(10):</span></td></tr>
+    <tr><td>条件赋值</td><td><span class="java-code">x = cond ? a : b</span></td><td><span class="py-code">x = a if cond else b</span></td></tr>
+    <tr><td>类型检查</td><td><span class="java-code">if (x instanceof String)</span></td><td><span class="py-code">if isinstance(x, str):</span></td></tr>
+    <tr><td>抛异常</td><td><span class="java-code">throw new Exception()</span></td><td><span class="py-code">raise Exception()</span></td></tr>
+    <tr><td>null 检查</td><td><span class="java-code">if (x != null)</span></td><td><span class="py-code">if x is not None:</span></td></tr>
+    <tr><td>数组/列表长度</td><td><span class="java-code">arr.length / list.size()</span></td><td><span class="py-code">len(lst)</span></td></tr>
+    <tr><td>连接字符串</td><td><span class="java-code">String.join(",", arr)</span></td><td><span class="py-code">",".join(arr)</span></td></tr>
+    <tr><td>判断包含</td><td><span class="java-code">list.contains(x)</span></td><td><span class="py-code">x in lst</span></td></tr>
+    <tr><td>最大值</td><td><span class="java-code">Math.max(a, b)</span></td><td><span class="py-code">max(a, b)</span></td></tr>
+    <tr><td>类定义</td><td><span class="java-code">public class Foo {}</span></td><td><span class="py-code">class Foo:</span></td></tr>
+    <tr><td>构造方法</td><td><span class="java-code">public Foo() {}</span></td><td><span class="py-code">def __init__(self):</span></td></tr>
+    <tr><td>读取文件</td><td><span class="java-code">new Scanner(new File("f"))</span></td><td><span class="py-code">with open("f") as f:</span></td></tr>
+  </table>
+  </div>
+</div>
+</section>
+
+<!-- ==================== Footer ==================== -->
+<div class="footer">
+  <p>基于 <a href="https://docs.python.org/3/tutorial/index.html" target="_blank">Python 3.14 官方 Tutorial</a> 和
+  <a href="https://docs.python.org/3/reference/index.html" target="_blank">Language Reference</a></p>
+  <p>为有 Java/C# 背景的开发者量身定制 &middot; 使用 Python 3.14+</p>
+  <p style="margin-top:8px;font-size:11px;">用浏览器打开此文件即可浏览 &middot; 建议搭配 Python 解释器实操练习</p>
+</div>
+
+</div>
+
+<script>
+  // 导航高亮
+  document.querySelectorAll('.nav-item').forEach(a => {
+    a.addEventListener('click', e => {
+      document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+      a.classList.add('active');
+    });
+  });
+
+  // 页面滚动时自动高亮当前章节
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        document.querySelectorAll('.nav-item').forEach(a => {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-80px 0px -60% 0px' });
+
+  document.querySelectorAll('section').forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

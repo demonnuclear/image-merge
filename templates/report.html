@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - 图片去重</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- 页面标题 -->
+        <div class="page-title">
+            &#x1F4CA; <span>扫描分析报告</span>
+        </div>
+
+        {# 如果 result 是空或者没有 summary 字段，显示空状态 #}
+        {% if not result or not result.get('summary') or result.summary.total_files == 0 %}
+        <div class="empty-state">
+            <div class="icon">&#x1F50D;</div>
+            <p>还没有扫描数据，请先配置目录并开始扫描。</p>
+            <div class="actions">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    &#x1F519; 返回配置
+                </a>
+            </div>
+        </div>
+        {% else %}
+
+        <!-- ═══ 统计卡片区 ═══ -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">总文件数</div>
+                <div class="number blue">{{ result.summary.total_files }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">完全重复组</div>
+                <div class="number red">{{ result.summary.exact_duplicate_count }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">目录内重复（A/B）</div>
+                <div class="number orange">
+                    {{ result.summary.self_duplicates_a_count + result.summary.self_duplicates_b_count }}
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="label">可释放空间</div>
+                <div class="number green">
+                    {{ (result.summary.reclaimable_size / 1024 / 1024) | round(1) }} MB
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="label">视觉相似组</div>
+                <div class="number blue">{{ result.summary.visual_duplicate_count }}</div>
+            </div>
+        </div>
+
+        <!-- ═══ 两个目录的信息 ═══ -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">&#x1F4C1; 目录 A</div>
+                <div class="path-display" style="margin:6px 0;">{{ result.dir_a.name }}</div>
+                <div class="number blue">{{ result.dir_a.total_count }}</div>
+                <div class="label">{{ (result.dir_a.total_size / 1024/1024) | round(1) }} MB</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">&#x1F4C1; 目录 B</div>
+                <div class="path-display" style="margin:6px 0;">{{ result.dir_b.name }}</div>
+                <div class="number blue">{{ result.dir_b.total_count }}</div>
+                <div class="label">{{ (result.dir_b.total_size / 1024/1024) | round(1) }} MB</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">仅 A 有（唯一）</div>
+                <div class="number green">{{ result.summary.unique_to_a_count }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">仅 B 有（唯一）</div>
+                <div class="number green">{{ result.summary.unique_to_b_count }}</div>
+            </div>
+        </div>
+
+        <!-- ═══ 完全重复文件列表 ═══ -->
+        <div class="card">
+            <h2>&#x1F4CC; 完全重复（SHA256 相同，共 {{ result.exact_duplicates | length }} 组）</h2>
+            {% if result.exact_duplicates %}
+            <div class="table-wrap">
+                <table>
+                    <tr>
+                        <th>文件（A 目录）</th>
+                        <th>文件（B 目录）</th>
+                        <th>大小</th>
+                        <th>SHA256（前16位）</th>
+                    </tr>
+                    {% for dup in result.exact_duplicates %}
+                    <tr>
+                        <td>
+                            {% for f in dup.files_a %}
+                            <div>{{ f.name }}</div>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for f in dup.files_b %}
+                            <div>{{ f.name }}</div>
+                            {% endfor %}
+                        </td>
+                        <td>{{ (dup.size_per_file / 1024) | round(1) }} KB</td>
+                        <td style="font-family:monospace;font-size:11px;">{{ dup.sha256[:16] }}...</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% else %}
+            <div class="message success">&#x2705; 没有发现完全重复的文件</div>
+            {% endif %}
+        </div>
+
+        <!-- ═══ 目录内重复 ═══ -->
+        {% if result.self_duplicates_a %}
+        <div class="card">
+            <h2>&#x1F4DD; A 目录内部重复（{{ result.self_duplicates_a | length }} 组）</h2>
+            <div class="table-wrap">
+                <table>
+                    <tr><th>SHA256</th><th>文件</th><th>数量</th></tr>
+                    {% for dup in result.self_duplicates_a %}
+                    <tr>
+                        <td style="font-family:monospace;font-size:11px;">{{ dup.sha256[:16] }}...</td>
+                        <td>
+                            {% for f in dup.files %}
+                            <div>{{ f.name }}</div>
+                            {% endfor %}
+                        </td>
+                        <td>{{ dup.count }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ═══ 唯一文件列表 ═══ -->
+        <div class="card">
+            <h2>&#x1F4E6; 唯一文件清单</h2>
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                <div>
+                    <h3 style="color:var(--text-dim);font-size:13px;margin-bottom:8px;">
+                        仅 A 有（{{ result.summary.unique_to_a_count }} 个）
+                    </h3>
+                    {% if result.unique_to_a %}
+                    <div style="max-height:300px;overflow-y:auto;font-size:12px;font-family:monospace;">
+                        {% for f in result.unique_to_a %}
+                        <div style="padding:4px 0;border-bottom:1px solid var(--border);">
+                            {{ f.name }} ({{ (f.size / 1024) | round(1) }} KB)
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-dim">无</div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 style="color:var(--text-dim);font-size:13px;margin-bottom:8px;">
+                        仅 B 有（{{ result.summary.unique_to_b_count }} 个）
+                    </h3>
+                    {% if result.unique_to_b %}
+                    <div style="max-height:300px;overflow-y:auto;font-size:12px;font-family:monospace;">
+                        {% for f in result.unique_to_b %}
+                        <div style="padding:4px 0;border-bottom:1px solid var(--border);">
+                            {{ f.name }} ({{ (f.size / 1024) | round(1) }} KB)
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-dim">无</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ 操作按钮 ═══ -->
+        <div class="actions">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                &#x1F519; 返回修改配置
+            </a>
+            <a href="{{ url_for('show_plan') }}" class="btn btn-primary">
+                &#x1F4CB; 查看合并方案
+            </a>
+        </div>
+
+        {% endif %}
+    </div>
+</body>
+</html>

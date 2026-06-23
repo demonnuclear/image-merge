@@ -1,0 +1,304 @@
+/*
+style.css - 全局样式文件
+=======================
+
+设计思路：
+- 深色主题：适合 NAS 长期运行场景（省电、不刺眼）
+- 响应式布局：适配电脑和手机浏览器访问
+- GitHub 风格配色：很多开发者会喜欢
+
+CSS 知识点：
+- :root 定义 CSS 变量（变颜色主题时只需改这里）
+- display: flex/grid  弹性/网格布局
+- @media 媒体查询（移动端适配）
+*/
+
+/* ── CSS 变量（Custom Properties）── */
+/* 在 :root {} 中定义，在整个页面中生效 */
+/* 改配色只需要改这些变量值即可 */
+:root {
+    --bg: #0d1117;        /* 页面背景 */
+    --card: #161b22;      /* 卡片背景 */
+    --border: #30363d;    /* 边框 */
+    --text: #e6edf3;      /* 文字主色 */
+    --text-dim: #8b949e;  /* 辅助文字 */
+    --accent: #58a6ff;    /* 蓝色（链接、按钮） */
+    --green: #3fb950;     /* 绿色（成功） */
+    --red: #f85149;       /* 红色（警告） */
+    --orange: #d29922;    /* 橙色（提醒） */
+    --radius: 8px;        /* 圆角 */
+}
+
+/* ── 全局重置 ── */
+/* 清除浏览器默认的 margin 和 padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, "Helvetica Neue", "Noto Sans SC",
+                 "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+/* ── 容器 ── */
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+/* ── 页面标题 ── */
+.page-title {
+    text-align: center;
+    padding: 30px 0 20px;
+    font-size: 26px;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 30px;
+}
+.page-title span {
+    color: var(--accent);
+}
+
+/* ── 卡片组件 ── */
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+}
+.card h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--accent);
+}
+
+/* ── 表单 ── */
+.form-group {
+    margin-bottom: 16px;
+}
+.form-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Consolas', 'Courier New', monospace;
+}
+.form-group input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+}
+
+/* ── 单选按钮组 ── */
+.radio-group {
+    display: flex;
+    gap: 20px;
+    padding: 8px 0;
+}
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--text);
+}
+
+/* ── 复选框 ── */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+}
+.checkbox-group label {
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* ── 按钮 ── */
+.btn {
+    display: inline-block;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #4a8fd4; }
+
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #d93a3a; }
+
+.btn-success { background: var(--green); color: #fff; }
+.btn-secondary { background: var(--border); color: var(--text); }
+.btn-secondary:hover { background: #444c56; }
+
+/* ── 统计卡片网格 ── */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+}
+.stat-card .number {
+    font-size: 28px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+.stat-card .label {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+.number.green { color: var(--green); }
+.number.red { color: var(--red); }
+.number.blue { color: var(--accent); }
+.number.orange { color: var(--orange); }
+
+/* ── 表格 ── */
+.table-wrap {
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+th {
+    background: rgba(88, 166, 255, 0.05);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 12px;
+    white-space: nowrap;
+}
+tr:hover td {
+    background: rgba(88, 166, 255, 0.03);
+}
+
+/* ── 消息提示 ── */
+.message {
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+.message.info {
+    background: rgba(88, 166, 255, 0.1);
+    border: 1px solid rgba(88, 166, 255, 0.3);
+    color: var(--accent);
+}
+.message.warning {
+    background: rgba(210, 168, 56, 0.1);
+    border: 1px solid rgba(210, 168, 56, 0.3);
+    color: var(--orange);
+}
+.message.success {
+    background: rgba(63, 185, 80, 0.1);
+    border: 1px solid rgba(63, 185, 80, 0.3);
+    color: var(--green);
+}
+
+/* ── 空状态 ── */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+}
+.empty-state .icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+/* ── 操作按钮区域 ── */
+.actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 24px 0;
+    flex-wrap: wrap;
+}
+
+/* ── 路径显示 ── */
+.path-display {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    background: var(--bg);
+    padding: 6px 10px;
+    border-radius: 4px;
+    word-break: break-all;
+}
+
+/* ── 有序列表 ── */
+ol {
+    margin-left: 20px;
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 2;
+}
+
+/* ── 加载中动画 ── */
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── 移动端适配 ── */
+@media (max-width: 600px) {
+    body { padding: 12px; }
+    .card { padding: 16px; }
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .radio-group {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
