@@ -277,22 +277,29 @@ def extract_date_video(file_path, progress_callback=None):
             if creation_time:
                 # ffprobe 的 creation_time 是 ISO 8601 格式
                 # 示例: '2025-06-24T10:30:00.000000Z'
-                # Z 表示 UTC 时间（Zulu time）
-                # 需要去掉 Z 并加上 +00:00 时区偏移才能用 fromisoformat
-                dt = datetime.fromisoformat(creation_time.replace('Z', '+00:00'))
-                return dt
+                # 注意：某些视频没有元数据，creation_time 可能为特殊值 'now'
+                # 此处尝试解析，失败则回退到文件修改时间
+                if creation_time.lower() == 'now':
+                    # 'now' 不是合法日期字符串，跳过，走下面的 mtime 回退
+                    pass
+                else:
+                    # Z 表示 UTC 时间（Zulu time）
+                    # 需要去掉 Z 并加上 +00:00 时区偏移才能用 fromisoformat
+                    dt = datetime.fromisoformat(creation_time.replace('Z', '+00:00'))
+                    return dt
 
-        # ffprobe 失败或无 creation_time 元数据
+        # ffprobe 失败或无 creation_time 元数据，或 creation_time 值为 'now'
         # 回退到文件修改时间
         mtime = os.path.getmtime(file_path)
         return datetime.fromtimestamp(mtime)
 
     except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError,
-            subprocess.TimeoutExpired):
+            subprocess.TimeoutExpired, ValueError):
         # CalledProcessError: ffprobe 返回非 0 退出码
         # FileNotFoundError: ffprobe 命令不存在（未安装 ffmpeg）
         # JSONDecodeError: ffprobe 输出不是有效 JSON
         # TimeoutExpired: ffprobe 执行超时（30 秒）
+        # ValueError: creation_time 格式异常（如 'now'、'Unknown' 等非日期字符串）
         # 全部回退到文件修改时间
         mtime = os.path.getmtime(file_path)
         return datetime.fromtimestamp(mtime)
