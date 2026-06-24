@@ -77,17 +77,6 @@
                     </div>
                 </div>
 
-                <!-- ═══ 预览模式 ═══ -->
-                <div class="form-group">
-                    <div class="checkbox-group">
-                        <label>
-                            <input type="checkbox" name="preview_mode"
-                                   {{ 'checked' if config.get('preview_mode', True) else '' }}>
-                            预览模式（仅扫描分析，不执行任何写操作）
-                        </label>
-                    </div>
-                </div>
-
                 <!-- 提交按钮 -->
                 <div class="actions">
                     <button type="submit" class="btn btn-primary" id="scanBtn">
@@ -103,16 +92,15 @@
             <ol>
                 <li><strong>填写主目录</strong>——你要保留照片的核心目录（文件不动，只接收合并）</li>
                 <li><strong>填写合并目录</strong>——要整理进来的目录（手机/相机导入的照片）</li>
-                <li>默认开启<strong>预览模式</strong>——先扫描分析，确认无误后再执行</li>
                 <li>点击「开始扫描」，等待分析完成</li>
                 <li>查看分析报告，确认合并方案</li>
-                <li>关闭预览模式后重新扫描，再执行合并操作</li>
+                <li>确认无误后，执行合并操作</li>
             </ol>
             <div style="margin-top:12px;padding:10px;background:var(--bg-tertiary);border-radius:8px;font-size:13px;color:var(--text-dim);line-height:1.6;">
                 <strong style="color:var(--orange);">&#x26A0;&#xFE0F; 安全提示</strong><br>
                 重复文件不会被直接删除，而是<strong>移入回收区</strong>（<code>合并目录/.recycle/时间戳/</code>）。<br>
                 执行操作后如果发现问题，可以到回收区手动把文件复制回来。<br>
-                建议第一次使用时保持预览模式，确认结果正确后再执行实际操作。
+                建议先扫描查看分析报告，确认结果正确后再执行合并操作。
             </div>
         </div>
     </div>

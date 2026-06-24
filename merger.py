@@ -9,7 +9,6 @@ merger.py - 合并执行模块
 
 安全策略：
 - 删除文件前先移动到回收区（.recycle 目录），绝不直接删除
-- 预览模式下不执行任何写操作
 - 所有操作都有日志记录
 
 Python 知识点：
@@ -87,7 +86,6 @@ def generate_merge_plan(analysis_result, config):
     Returns:
         dict: {
             'direction': 'merge_to_primary',
-            'preview_mode': True/False,
             'source_dir': 合并目录路径（来源）,
             'target_dir': 主目录路径（目的地）,
             'operations': [
@@ -109,8 +107,6 @@ def generate_merge_plan(analysis_result, config):
         转换成 merger.py 需要的操作指令列表（每个文件要做什么）
         这是一种常见的编程模式：分层之间的数据转换
     """
-    preview_mode = config.get('preview_mode', True)
-
     # ── 固定方向：合并目录 → 主目录 ──
     # 主目录 = dir_a = 合并的目标位置（文件最终到这儿）
     # 合并目录 = dir_b = 被合并的来源位置（文件从这儿取）
@@ -153,7 +149,6 @@ def generate_merge_plan(analysis_result, config):
     # ── 汇总 ──
     plan = {
         'direction': 'merge_to_primary',
-        'preview_mode': preview_mode,
         'source_dir': source_dir,
         'target_dir': target_dir,
         'operations': operations,
@@ -173,10 +168,9 @@ def execute_merge(plan):
     执行合并方案。
 
     流程：
-    1. 检查预览模式 → 预览模式不执行，直接返回
-    2. 创建回收区目录 → .recycle/时间戳/
-    3. 逐条执行操作
-    4. 记录日志
+    1. 创建回收区目录 → .recycle/时间戳/
+    2. 逐条执行操作
+    3. 记录日志
 
     Args:
         plan: generate_merge_plan() 返回的方案
@@ -200,17 +194,6 @@ def execute_merge(plan):
           - 跨文件系统 = copy + delete（自动处理）
           - 类似 Linux 的 mv 命令
     """
-    # ── 预览模式检查 ──
-    if plan.get('preview_mode'):
-        logger.info("预览模式：不执行写操作")
-        return {
-            'success': True,
-            'message': '预览模式，未执行实际操作',
-            'executed_operations': [],
-            'failed_operations': [],
-            'recycle_dir': ''
-        }
-
     # ── 创建回收区目录（在合并目录下，与原文件同磁盘） ──
     # 例如: 文件在 /volume1/photo/merge/sub/img.jpg
     #       回收在 /volume1/photo/merge/.recycle/20260623_120000/sub/img.jpg

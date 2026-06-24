@@ -233,8 +233,7 @@ def index():
         # 合并方向固定为：合并目录 → 主目录（不再需要选择方向）
         config = {
             'dir_a': request.form.get('dir_a', '').strip(),
-            'dir_b': request.form.get('dir_b', '').strip(),
-            'preview_mode': request.form.get('preview_mode') == 'on'
+            'dir_b': request.form.get('dir_b', '').strip()
         }
 
         # 保存配置到文件

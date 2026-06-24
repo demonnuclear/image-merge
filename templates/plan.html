@@ -74,20 +74,13 @@
             </div>
         </div>
 
-        {# ═══ 预览模式警告 ═══ #}
-        {% if plan.preview_mode %}
-        <div class="message warning">
-            &#x26A0;&#xFE0F; 当前为<strong>预览模式</strong>，不会执行写操作。<br>
-            如需实际执行，请在配置页面关闭预览模式后重新扫描。
-        </div>
-        {% else %}
+        {# ═══ 操作警告 ═══ #}
         <div class="message warning">
             &#x26A0;&#xFE0F; 即将对文件进行操作。<br>
             • <strong>复制</strong>：合并目录中独有的文件 → 复制到主目录（保留子目录结构）<br>
             • <strong>回收</strong>：合并目录中与主目录重复的文件 → 移入 <code>合并目录/.recycle/时间戳/</code>（非直接删除）<br>
             &#x1F4A1; 回收区在合并目录下（与原文件同磁盘），如有需要可手动恢复。
         </div>
-        {% endif %}
 
         {# ═══ 操作清单 ═══ #}
         <div class="card">
@@ -128,7 +121,6 @@
                 &#x1F519; 返回报告
             </a>
 
-            {% if not plan.preview_mode %}
             <form action="{{ url_for('execute') }}" method="POST"
                   onsubmit="return confirm('确认执行合并操作？\n\n合并目录中的重复文件会被移入回收区（.recycle 目录）。\n执行前请确认已备份重要数据。');"
                   style="display:inline;">
@@ -136,7 +128,6 @@
                     &#x26A0;&#xFE0F; 确认执行合并
                 </button>
             </form>
-            {% endif %}
         </div>
 
         {% endif %}

@@ -36,8 +36,7 @@ CONFIG_FILE = Path(__file__).parent / "config.json"
 # 合并方向固定为 合并目录→主目录，不再需要方向选择
 DEFAULT_CONFIG = {
     "dir_a": "",
-    "dir_b": "",
-    "preview_mode": True
+    "dir_b": ""
 }
 
 
