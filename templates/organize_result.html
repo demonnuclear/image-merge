@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% include 'navigation.html' %}
+
+        <div class="page-title">
+            &#x1F4CA; <span>整理结果</span>
+        </div>
+
+        {% if not result %}
+        <div class="empty-state">
+            <div class="icon">&#x2753;</div>
+            <p>暂无整理结果，请先执行整理操作。</p>
+            <div class="actions">
+                <a href="{{ url_for('organize.organize_page') }}" class="btn btn-primary">
+                    &#x1F504; 开始整理
+                </a>
+            </div>
+        </div>
+        {% else %}
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">照片</div>
+                <div class="number blue">{{ result.get('moved_photos', 0) }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">视频</div>
+                <div class="number orange">{{ result.get('moved_videos', 0) }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">失败</div>
+                <div class="number red">{{ result.get('errors', []) | length }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">目录</div>
+                <div class="number" style="font-size:14px;">{{ result.get('source_dir', '') }}</div>
+            </div>
+        </div>
+
+        {% if result.get('errors') %}
+        <div class="card">
+            <h2>&#x274C; 失败记录</h2>
+            <div class="table-wrap">
+                <table>
+                    <tr><th>文件</th><th>错误</th></tr>
+                    {% for err in result.errors %}
+                    <tr>
+                        <td style="font-family:monospace;font-size:12px;">{{ err.file }}</td>
+                        <td style="color:var(--red);">{{ err.error }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="actions">
+            <a href="{{ url_for('organize.organize_page') }}" class="btn btn-primary">
+                &#x1F504; 继续整理
+            </a>
+        </div>
+
+        {% endif %}
+    </div>
+</body>
+</html>

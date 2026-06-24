@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .phase-desc {
+            background: var(--bg);
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .phase-desc .highlight {
+            color: var(--accent);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% include 'navigation.html' %}
+
+        <div class="page-title">
+            &#x23F3; <span>正在整理</span>
+        </div>
+
+        {% raw %}
+        <div id="progress-section">
+            <div class="card">
+                <div class="stat-card">
+                    <div class="label">状态</div>
+                    <div class="number" id="status-text">启动中...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">已处理</div>
+                    <div class="number blue" id="processed-count">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">总计</div>
+                    <div class="number" id="total-count">0</div>
+                </div>
+                <div id="progress-bar-container" style="display:none;margin-top:12px;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="phase-desc-container" class="phase-desc">
+                准备开始...
+            </div>
+
+            <div class="card">
+                <h2>&#x1F4DD; 处理日志</h2>
+                <div id="log-container" style="max-height:400px;overflow-y:auto;font-size:12px;font-family:monospace;line-height:1.8;">
+                </div>
+            </div>
+        </div>
+        {% endraw %}
+
+        <div id="done-section" style="display:none;">
+            <div class="card" style="text-align:center;padding:40px;">
+                <div style="font-size:48px;margin-bottom:16px;" id="done-icon">&#x2705;</div>
+                <h2 id="done-title">整理完成！</h2>
+                <div class="actions" style="margin-top:20px;">
+                    <a href="{{ url_for('organize.organize_result') }}" class="btn btn-primary">
+                        &#x1F4CA; 查看结果
+                    </a>
+                    <a href="{{ url_for('organize.organize_page') }}" class="btn btn-secondary">
+                        &#x1F519; 返回配置
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="error-section" style="display:none;">
+            <div class="card" style="text-align:center;padding:40px;">
+                <div style="font-size:48px;margin-bottom:16px;">&#x274C;</div>
+                <h2 id="error-title">整理出错</h2>
+                <p id="error-message" style="color:var(--red);"></p>
+                <div class="actions" style="margin-top:20px;">
+                    <a href="{{ url_for('organize.organize_page') }}" class="btn btn-primary">
+                        &#x1F519; 返回重试
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var pollInterval = setInterval(function() {
+            fetch('{{ url_for("organize.organize_progress_api") }}')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    document.getElementById('status-text').textContent =
+                        data.message || '处理中...';
+                    document.getElementById('processed-count').textContent =
+                        data.count || 0;
+                    document.getElementById('total-count').textContent =
+                        data.total || 0;
+
+                    if (data.total > 0) {
+                        var pct = Math.min(100, Math.round((data.count || 0) / data.total * 100));
+                        document.getElementById('progress-fill').style.width = pct + '%';
+                    }
+
+                    // 阶段描述
+                    var phaseDescs = {
+                        'scanning': '🔍 正在扫描目录中所有图片和视频文件...',
+                        'extracting': '📅 正在逐个提取文件的拍摄日期（照片读 EXIF，视频用 ffprobe）...',
+                        'organizing': '📦 正在按日期移动到对应目录（照片/年份/日期/）...',
+                        'done': '✅ 整理完成！'
+                    };
+                    var phaseEl = document.getElementById('phase-desc-container');
+                    if (phaseEl && phaseDescs[data.status]) {
+                        phaseEl.innerHTML = '<span class="highlight">' +
+                            (data.status === 'scanning' ? '[阶段1/3]' :
+                             data.status === 'extracting' ? '[阶段2/3]' :
+                             data.status === 'organizing' ? '[阶段3/3]' : '') +
+                            '</span> ' + phaseDescs[data.status];
+                    }
+
+                    // 日志
+                    if (data.log && data.log.length > 0) {
+                        var logHtml = data.log.slice(-100).map(function(msg) {
+                            return '<div>' + msg + '</div>';
+                        }).join('');
+                        document.getElementById('log-container').innerHTML = logHtml;
+                        var lc = document.getElementById('log-container');
+                        lc.scrollTop = lc.scrollHeight;
+                    }
+
+                    if (data.status === 'done') {
+                        clearInterval(pollInterval);
+                        document.getElementById('progress-section').style.display = 'none';
+                        document.getElementById('done-section').style.display = 'block';
+                    } else if (data.status === 'error') {
+                        clearInterval(pollInterval);
+                        document.getElementById('progress-section').style.display = 'none';
+                        document.getElementById('error-section').style.display = 'block';
+                        document.getElementById('error-message').textContent =
+                            data.error || data.message || '未知错误';
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Poll error:', err);
+                });
+        }, 1000);
+    </script>
+</body>
+</html>

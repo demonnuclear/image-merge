@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% include 'navigation.html' %}
+
+        <div class="page-title">
+            &#x1F4C2; <span>照片整理</span>
+        </div>
+
+        <div class="card">
+            <h2>&#x2699;&#xFE0F; 整理配置</h2>
+
+            <form action="{{ url_for('organize.organize_page') }}" method="POST">
+
+                <div class="form-group">
+                    <label>&#x1F4C1; 源目录路径（就地整理）</label>
+                    <input type="text" name="source_dir"
+                           placeholder="/volume1/photo/未整理"
+                           required>
+                    <div class="field-explanation">
+                        文件会被移到 <code>源目录/照片|视频/年份/日期/</code> 下。
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>&#x1F4C5; 整理模式</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="mode" value="day" checked>
+                            按天（示例: <code>2025/2025-06-24/</code>）</label><br>
+                        <label><input type="radio" name="mode" value="month">
+                            按月（示例: <code>2025/2025-06/</code>）</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>&#x1F4C4; 文件类型</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="organize_photos" checked>
+                            整理照片（jpg/png/gif/bmp/webp/tiff/heic）
+                        </label><br>
+                        <label>
+                            <input type="checkbox" name="organize_videos" checked>
+                            整理视频（mp4/mov/avi/mkv/wmv/flv/m4v）
+                        </label>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary" id="organizeBtn">
+                        &#x1F504; 开始整理
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>&#x1F4D6; 说明</h2>
+            <ul>
+                <li>按照片 EXIF 拍摄日期或视频元数据整理</li>
+                <li>无日期信息的文件使用文件修改时间</li>
+                <li>同名文件自动重命名（加 _1, _2 后缀）</li>
+                <li>已经是 <code>照片/</code> 或 <code>视频/</code> 目录下的文件会跳过</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('form')?.addEventListener('submit', function() {
+            document.getElementById('organizeBtn').disabled = true;
+            document.getElementById('organizeBtn').innerHTML = '&#x23F3; 整理中...';
+        });
+    </script>
+</body>
+</html>
