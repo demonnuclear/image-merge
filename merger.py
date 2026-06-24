@@ -163,7 +163,7 @@ def generate_merge_plan(analysis_result, config):
     return plan
 
 
-def execute_merge(plan):
+def execute_merge(plan, progress_callback=None):
     """
     执行合并方案。
 
@@ -222,7 +222,17 @@ def execute_merge(plan):
     executed = []
     failed = []
 
-    for op in plan['operations']:
+    total_ops = len(plan['operations'])
+
+    for idx, op in enumerate(plan['operations']):
+        if progress_callback:
+            progress_callback(
+                'executing',
+                f'正在处理 ({idx + 1}/{total_ops}): {op.get("relative_path", op.get("filename", ""))}',
+                current_file=op.get('relative_path', op.get('filename', '')),
+                count=idx + 1,
+                total=total_ops
+            )
         try:
             if op['type'] == 'copy':
                 # ═══ 复制文件（保留合并目录的结构） ═══

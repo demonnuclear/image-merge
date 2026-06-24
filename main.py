@@ -104,6 +104,21 @@ scan_progress = {
     'error': None
 }
 
+# ── 合并进度变量 ──
+# 后台合并线程会不断更新这个字典
+# 结构设计与 scan_progress 保持一致，方便前端 JS 复用
+# 之所以独立而不用 scan_progress，是因为两个进度互不干扰
+merge_progress = {
+    'status': 'idle',      # idle / executing / done / error
+    'message': '等待开始',
+    'current_file': '',
+    'count': 0,
+    'total': 0,
+    'log': [],
+    'result': None,
+    'error': None
+}
+
 
 def run_scan_background(config):
     """
@@ -225,6 +240,70 @@ def run_scan_background(config):
             'message': error_msg,
             'error': str(e),
             'log': scan_progress.get('log', []) + [error_msg]
+        })
+
+
+def run_merge_background(plan):
+    """
+    在后台线程中执行合并操作。
+
+    和 run_scan_background 类似，在独立线程中执行耗时操作，
+    通过 merge_progress 全局变量向前端报告实时进度。
+    """
+    global merge_result, merge_progress
+
+    def update_progress(stage, message, **kwargs):
+        """更新合并进度（由 merger.py 的回调触发）。"""
+        log_entry = message
+        merge_progress.update({
+            'status': stage,  # stage 来自 merger.py 的回调，值为 'executing'
+            'message': message,
+            'current_file': kwargs.get('current_file', ''),
+            'count': kwargs.get('count', 0),
+            'total': kwargs.get('total', 0),
+            'error': None
+        })
+        log = merge_progress.get('log', [])
+        log.append(log_entry)
+        if len(log) > 300:
+            log = log[-300:]
+        merge_progress['log'] = log
+
+    try:
+        merge_progress.update({
+            'status': 'executing',
+            'message': '正在执行合并操作...',
+            'log': ['开始执行合并操作...']
+        })
+
+        # 调用 merger.py 的 execute_merge 函数，传入进度回调
+        # 注意：plan 是 generate_merge_plan 的返回值，在 /execute 路由中生成
+        result = execute_merge(plan, progress_callback=update_progress)
+
+        # 保存结果
+        merge_result = result
+
+        # 更新进度为完成
+        msg = (f'✅ 合并完成：{len(result.get("executed_operations", []))} 个成功，'
+               f'{len(result.get("failed_operations", []))} 个失败')
+        merge_progress.update({
+            'status': 'done',
+            'message': msg,
+            'result': result,
+            'log': merge_progress.get('log', []) + [msg]
+        })
+        print(f'\n  {msg}')
+
+    except Exception as e:
+        error_msg = f'合并出错: {type(e).__name__}: {e}'
+        print(f'\n  ❌ {error_msg}')
+        import traceback
+        traceback.print_exc()
+        merge_progress.update({
+            'status': 'error',
+            'message': error_msg,
+            'error': str(e),
+            'log': merge_progress.get('log', []) + [error_msg]
         })
 
 
@@ -361,10 +440,57 @@ def show_scanning():
 
 @app.route('/execute', methods=['POST'])
 def execute():
-    """执行合并操作。"""
-    global merge_plan, merge_result
-    merge_result = execute_merge(merge_plan)
-    return redirect(url_for('show_result'))
+    """
+    执行合并操作（异步）。
+
+    原来这里是同步的，execute_merge 可能跑几十秒甚至几分钟，
+    浏览器会一直转圈等待响应，用户体验很差。
+
+    现在改为后台线程执行，用户立刻跳到进度页面，
+    前端 JS 轮询 /merge_progress 查看实时进度。
+    """
+    global merge_plan, merge_result, merge_progress
+
+    # 重置进度
+    merge_progress.clear()
+    merge_progress.update({
+        'status': 'starting',
+        'message': '正在启动合并...',
+        'log': ['正在启动合并...']
+    })
+
+    # 生成合并方案（这个很快，同步执行）
+    # generate_merge_plan 只是组装数据，不涉及文件 I/O
+    merge_plan = generate_merge_plan(analysis_result, current_config)
+
+    # 启动后台线程执行合并
+    thread = threading.Thread(
+        target=run_merge_background,
+        args=(merge_plan,),
+        daemon=True
+    )
+    thread.start()
+
+    # 立即跳转到进度页面
+    return render_template('merging.html', title='合并中...')
+
+
+@app.route('/merge_progress')
+def merge_progress_api():
+    """
+    AJAX 轮询接口：返回当前合并进度（JSON 格式）。
+
+    与 /progress 接口用途一致，但返回的是合并进度。
+    前端 merging.html 每隔 1 秒请求这个接口。
+    """
+    global merge_progress
+    return jsonify(merge_progress)
+
+
+@app.route('/merging')
+def show_merging():
+    """合并进度页面。"""
+    return render_template('merging.html', title='合并中...')
 
 
 @app.route('/result')

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - 图片去重</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .phase-desc {
+            background: var(--bg);
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .phase-desc .highlight {
+            color: var(--accent);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% include 'navigation.html' %}
+
+        <div class="page-title">
+            &#x1F504; <span>正在合并</span>
+        </div>
+
+        <div id="progress-section">
+            <div class="card">
+                <div class="stat-card">
+                    <div class="label">状态</div>
+                    <div class="number" id="status-text">启动中...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">已处理</div>
+                    <div class="number blue" id="processed-count">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">总计</div>
+                    <div class="number" id="total-count">0</div>
+                </div>
+                <div id="progress-bar-container" style="display:none;margin-top:12px;">
+                    <div class="progress-bar-container" style="margin:0;">
+                        <div class="progress-bar-fill" id="progress-fill" style="width:0%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="phase-desc-container" class="phase-desc">
+                准备开始...
+            </div>
+
+            <div class="card">
+                <h2>&#x1F4DD; 处理日志</h2>
+                <div id="log-container" style="max-height:400px;overflow-y:auto;font-size:12px;font-family:monospace;line-height:1.8;">
+                </div>
+            </div>
+        </div>
+
+        <div id="done-section" style="display:none;">
+            <div class="card" style="text-align:center;padding:40px;">
+                <div style="font-size:48px;margin-bottom:16px;">&#x2705;</div>
+                <h2>合并完成！</h2>
+                <div class="actions" style="margin-top:20px;">
+                    <a href="{{ url_for('show_result') }}" class="btn btn-primary">
+                        &#x1F4CA; 查看结果
+                    </a>
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                        &#x1F519; 返回首页
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="error-section" style="display:none;">
+            <div class="card" style="text-align:center;padding:40px;">
+                <div style="font-size:48px;margin-bottom:16px;">&#x274C;</div>
+                <h2>合并出错</h2>
+                <p id="error-message" style="color:var(--red);"></p>
+                <div class="actions" style="margin-top:20px;">
+                    <a href="{{ url_for('show_plan') }}" class="btn btn-primary">
+                        &#x1F519; 返回方案
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var pollInterval = setInterval(function() {
+            fetch('{{ url_for("merge_progress_api") }}')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    document.getElementById('status-text').textContent =
+                        data.message || '处理中...';
+                    document.getElementById('processed-count').textContent =
+                        data.count || 0;
+                    document.getElementById('total-count').textContent =
+                        data.total || 0;
+
+                    if (data.total > 0) {
+                        var pct = Math.min(100, Math.round((data.count || 0) / data.total * 100));
+                        document.getElementById('progress-fill').style.width = pct + '%';
+                    }
+
+                    // 日志
+                    if (data.log && data.log.length > 0) {
+                        var logHtml = data.log.slice(-100).map(function(msg) {
+                            return '<div>' + msg + '</div>';
+                        }).join('');
+                        document.getElementById('log-container').innerHTML = logHtml;
+                        var lc = document.getElementById('log-container');
+                        lc.scrollTop = lc.scrollHeight;
+                    }
+
+                    if (data.status === 'done') {
+                        clearInterval(pollInterval);
+                        document.getElementById('progress-section').style.display = 'none';
+                        document.getElementById('done-section').style.display = 'block';
+                    } else if (data.status === 'error') {
+                        clearInterval(pollInterval);
+                        document.getElementById('progress-section').style.display = 'none';
+                        document.getElementById('error-section').style.display = 'block';
+                        document.getElementById('error-message').textContent =
+                            data.error || data.message || '未知错误';
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Poll error:', err);
+                });
+        }, 1000);
+    </script>
+</body>
+</html>
