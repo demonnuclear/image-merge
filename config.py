@@ -31,10 +31,12 @@ CONFIG_FILE = Path(__file__).parent / "config.json"
 # 默认配置字典
 # Python 的字典（dict）类似 Java 的 HashMap<String, Object> / C# 的 Dictionary<string, object>
 # 键是字符串，值可以是任意类型
+# dir_a = 主目录（合并目的地，文件最终汇集到这里）
+# dir_b = 合并目录（来源，要去重的目录，不重复的复制到主目录，重复的移入回收区）
+# 合并方向固定为 合并目录→主目录，不再需要方向选择
 DEFAULT_CONFIG = {
     "dir_a": "",
     "dir_b": "",
-    "merge_direction": "a_to_b",
     "preview_mode": True
 }
 

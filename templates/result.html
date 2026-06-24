@@ -12,7 +12,6 @@
             &#x2705; <span>执行完成</span>
         </div>
 
-        {# 检查是否有结果数据 #}
         {% if not result %}
         <div class="empty-state">
             <div class="icon">&#x2753;</div>
@@ -20,7 +19,6 @@
         </div>
         {% else %}
 
-        {# ═══ 执行状态 ═══ #}
         <div class="card">
             {% if result.success %}
             <div class="message success">
@@ -35,7 +33,7 @@
             {% endif %}
         </div>
 
-        {# ═══ 执行统计 ═══ #}
+        <!-- ═══ 执行统计 ═══ -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="label">操作成功</div>
@@ -47,16 +45,16 @@
             </div>
             {% if result.recycle_dir %}
             <div class="stat-card" style="grid-column: span 2;">
-                <div class="label">回收区目录</div>
+                <div class="label">回收区目录（在合并目录下）</div>
                 <div class="path-display" style="margin-top:6px;">{{ result.recycle_dir }}</div>
                 <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
-                    &#x1F4A1; 如需恢复文件，请到回收区手动复制出来
+                    &#x1F4A1; 如需恢复文件，请到回收区手动复制回原位置
                 </div>
             </div>
             {% endif %}
         </div>
 
-        {# ═══ 成功操作列表 ═══ #}
+        <!-- ═══ 成功操作列表 ═══ -->
         <div class="card">
             <h2>&#x2705; 成功执行的操作（{{ result.executed_operations | length }} 个）</h2>
             {% if result.executed_operations %}
@@ -71,9 +69,9 @@
                     <tr>
                         <td>
                             {% if op.type == 'copy' %}
-                            <span style="color:var(--green);">&#x1F4E5; 复制</span>
+                            <span style="color:var(--green);">&#x1F4E5; 复制到主目录</span>
                             {% else %}
-                            <span style="color:var(--orange);">&#x1F5D1; 回收</span>
+                            <span style="color:var(--orange);">&#x1F5D1; 移入回收区</span>
                             {% endif %}
                         </td>
                         <td style="font-family:monospace;font-size:12px;">{{ op.relative_path }}</td>
@@ -87,7 +85,7 @@
             {% endif %}
         </div>
 
-        {# ═══ 失败操作列表 ═══ #}
+        <!-- ═══ 失败操作列表 ═══ -->
         {% if result.failed_operations %}
         <div class="card">
             <h2 style="color:var(--red);">&#x274C; 失败的操作（{{ result.failed_operations | length }} 个）</h2>
@@ -108,7 +106,6 @@
         </div>
         {% endif %}
 
-        {# ═══ 操作按钮 ═══ #}
         <div class="actions">
             <a href="{{ url_for('index') }}" class="btn btn-primary">
                 &#x1F504; 重新开始

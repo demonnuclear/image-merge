@@ -142,7 +142,7 @@ def run_scan_background(config):
         scan_progress.update({
             'status': 'scanning',
             'message': '🔄 正在扫描目录：遍历所有子目录，识别图片文件（jpg/png/gif/bmp/webp...），计算每个文件的 SHA256 哈希值用于精确去重...',
-            'log': ['[阶段1/3] 扫描目录 —— 遍历源目录和目标目录，提取每个图片文件的信息（路径、大小、SHA256）']
+            'log': ['[阶段1/3] 扫描目录 —— 分别遍历主目录和合并目录，提取每个图片文件的信息（路径、大小、SHA256）']
         })
 
         # 调用 scan_directories()，传入 update_progress 作为回调
@@ -159,7 +159,7 @@ def run_scan_background(config):
         for dir_key in ['dir_a', 'dir_b']:
             files = scan_result.get(dir_key, {}).get('files', [])
             if files:
-                dir_label = '源目录' if dir_key == 'dir_a' else '目标目录'
+                dir_label = '主目录' if dir_key == 'dir_a' else '合并目录'
                 scan_progress['dir_key'] = dir_key
                 # 传入回调，每处理一个文件上报一次进度
                 # dir_label 用于在日志中标注文件来自源目录还是目标目录
@@ -229,10 +229,11 @@ def index():
 
     if request.method == 'POST':
         # ═══ 用户提交了表单 ═══
+        # 注意：dir_a 是主目录路径（合并目的地），dir_b 是合并目录路径（来源）
+        # 合并方向固定为：合并目录 → 主目录（不再需要选择方向）
         config = {
             'dir_a': request.form.get('dir_a', '').strip(),
             'dir_b': request.form.get('dir_b', '').strip(),
-            'merge_direction': request.form.get('merge_direction', 'a_to_b'),
             'preview_mode': request.form.get('preview_mode') == 'on'
         }
 

@@ -3,18 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--
-    Jinja2 模板语法：
-    {{ title }} 输出 Python 传递过来的变量值
-    类似 JSP 的 ${ title } 或 Razor 的 @Model.Title
-    -->
     <title>{{ title }}</title>
-    <!--
-    url_for('static', filename='style.css')
-    这是 Flask 的静态文件 URL 生成函数
-    会自动映射到 static/style.css
-    -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .field-explanation {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 4px;
+            padding: 8px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            line-height: 1.6;
+        }
+        .field-explanation strong {
+            color: var(--text);
+        }
+        .direction-arrow {
+            text-align: center;
+            font-size: 28px;
+            margin: -8px 0 4px 0;
+            color: var(--blue);
+            opacity: 0.7;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -27,58 +38,46 @@
         <div class="card">
             <h2>&#x2699;&#xFE0F; 目录配置</h2>
 
-            <!--
-            Flask 表单处理：
-            action="{{ url_for('index') }}"
-            表单提交到 / 路径（index 函数）
-            method="POST"
-            用 POST 方法提交（数据在请求体中，不在 URL 中）
-            -->
             <form action="{{ url_for('index') }}" method="POST">
-                <!-- 目录 A 路径 -->
+
+                <!-- ═══ 主目录 ═══ -->
                 <div class="form-group">
-                    <label>目录 A 路径（图片来源）</label>
+                    <label>&#x1F4C2; 主目录路径（合并目的地）</label>
                     <input type="text" name="dir_a"
                            value="{{ config.get('dir_a', '') }}"
-                           placeholder="/volume1/photo/phone"
+                           placeholder="/volume1/photo/我的照片库"
                            required>
-                </div>
-
-                <!-- 目录 B 路径 -->
-                <div class="form-group">
-                    <label>目录 B 路径（目标合并位置）</label>
-                    <input type="text" name="dir_b"
-                           value="{{ config.get('dir_b', '') }}"
-                           placeholder="/volume1/photo/camera"
-                           required>
-                </div>
-
-                <!-- 合并方向（单选用 radio） -->
-                <div class="form-group">
-                    <label>合并方向</label>
-                    <div class="radio-group">
-                        <label>
-                            <!--
-                            Jinja2 条件判断：
-                            {% if cond %}...{% else %}...{% endif %}
-                            如果 config.merge_direction 是 'a_to_b'，加上 checked 属性
-                            -->
-                            <input type="radio" name="merge_direction"
-                                   value="a_to_b"
-                                   {{ 'checked' if config.get('merge_direction') == 'a_to_b' else '' }}>
-                            A &#x2192; B（A 合并到 B，保留 B）
-                        </label>
-                        <label>
-                            <input type="radio" name="merge_direction"
-                                   value="b_to_a"
-                                   {{ 'checked' if config.get('merge_direction') == 'b_to_a' else '' }}>
-                            B &#x2192; A（B 合并到 A，保留 A）
-                        </label>
+                    <div class="field-explanation">
+                        <strong>主目录</strong> 是你要保留的核心照片目录。<br>
+                        • 主目录中的文件 <strong>始终不动</strong>，不会被删除或移动<br>
+                        • 合并目录中"不重复"的文件会被 <strong>复制</strong> 到主目录对应的子目录下<br>
+                        • 主目录中已有的文件保持不变<br>
+                        • 如果合并目录中有主目录还没有的子目录，这些子目录也会被复制过来<br>
+                        <span style="color:var(--orange);">&#x1F4A1; 一般选你最常用、文件最多的那个目录</span>
                     </div>
                 </div>
 
-                <!-- 预览模式（复选框） -->
-                <!-- 注意：如果复选框未选中，浏览器不会提交该字段 -->
+                <!-- ═══ 合并方向箭头 ═══ -->
+                <div class="direction-arrow">&#x2B07;</div>
+
+                <!-- ═══ 合并目录 ═══ -->
+                <div class="form-group">
+                    <label>&#x1F4E5; 合并目录路径（图片来源）</label>
+                    <input type="text" name="dir_b"
+                           value="{{ config.get('dir_b', '') }}"
+                           placeholder="/volume1/photo/手机导入"
+                           required>
+                    <div class="field-explanation">
+                        <strong>合并目录</strong> 是你要整理进来的目录（比如手机导入的照片）。<br>
+                        • "不重复"的文件 → <strong>复制</strong> 到主目录（原文件还在合并目录中）<br>
+                        • "与主目录重复"的文件 → <strong>移入回收区</strong>（在主目录的 <code>.recycle/时间戳/</code> 下）<br>
+                        • 回收区位于 <strong>合并目录</strong> 下，与原文件同磁盘，避免占用主目录空间<br>
+                        • 如果操作有误，可到回收区手动恢复文件<br>
+                        <span style="color:var(--orange);">&#x1F4A1; 一般选从手机/相机导入的目录</span>
+                    </div>
+                </div>
+
+                <!-- ═══ 预览模式 ═══ -->
                 <div class="form-group">
                     <div class="checkbox-group">
                         <label>
@@ -100,20 +99,25 @@
 
         <!-- 使用说明 -->
         <div class="card">
-            <h2>&#x1F4D6; 使用说明</h2>
+            <h2>&#x1F4D6; 使用流程</h2>
             <ol>
-                <li>填写两个图片目录的完整路径（飞牛 OS 上的绝对路径）</li>
-                <li>选择合并方向：A→B 表示把 A 的内容合并到 B</li>
-                <li>预览模式默认开启——只扫描分析，不修改文件</li>
-                <li>点击「开始扫描」等待分析完成</li>
-                <li>查看分析报告，确认合并方案后执行</li>
+                <li><strong>填写主目录</strong>——你要保留照片的核心目录（文件不动，只接收合并）</li>
+                <li><strong>填写合并目录</strong>——要整理进来的目录（手机/相机导入的照片）</li>
+                <li>默认开启<strong>预览模式</strong>——先扫描分析，确认无误后再执行</li>
+                <li>点击「开始扫描」，等待分析完成</li>
+                <li>查看分析报告，确认合并方案</li>
+                <li>关闭预览模式后重新扫描，再执行合并操作</li>
             </ol>
+            <div style="margin-top:12px;padding:10px;background:var(--bg-tertiary);border-radius:8px;font-size:13px;color:var(--text-dim);line-height:1.6;">
+                <strong style="color:var(--orange);">&#x26A0;&#xFE0F; 安全提示</strong><br>
+                重复文件不会被直接删除，而是<strong>移入回收区</strong>（<code>合并目录/.recycle/时间戳/</code>）。<br>
+                执行操作后如果发现问题，可以到回收区手动把文件复制回来。<br>
+                建议第一次使用时保持预览模式，确认结果正确后再执行实际操作。
+            </div>
         </div>
     </div>
 
     <!-- 提交时禁用按钮（防重复提交） -->
-    <!-- 注意：必须在 form 的 submit 事件中禁用按钮，而不是 button 的 click
-         因为在 click 中直接禁用按钮，某些浏览器会阻止表单提交 -->
     <script>
         document.querySelector('form')?.addEventListener('submit', function(e) {
             var btn = document.getElementById('scanBtn');

@@ -5,6 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }} - 图片去重</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .direction-label {
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .direction-label .arrow {
+            font-size: 22px;
+            color: var(--blue);
+            display: block;
+            margin: 4px 0;
+        }
+        .direction-label .primary {
+            color: var(--blue);
+            font-weight: 600;
+        }
+        .direction-label .merge {
+            color: var(--orange);
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -12,7 +35,6 @@
             &#x1F4CB; <span>合并方案</span>
         </div>
 
-        {# 如果 plan 为空或没有操作，显示提示 #}
         {% if not plan or not plan.get('operations') or plan.operations | length == 0 %}
         <div class="empty-state">
             <div class="icon">&#x2705;</div>
@@ -27,22 +49,21 @@
 
         {# ═══ 方案概览卡片 ═══ #}
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="label">合并方向</div>
-                <div style="font-size:18px;font-weight:600;margin-top:4px;">
-                    {% if plan.direction == 'a_to_b' %}
-                    A &#x2192; B
-                    {% else %}
-                    B &#x2192; A
-                    {% endif %}
+            <div class="stat-card" style="grid-column: span 2;">
+                <div class="direction-label">
+                    <span class="merge">&#x1F4E5; 合并目录</span><br>
+                    <span style="font-size:12px;">{{ plan.source_dir }}</span>
+                    <span class="arrow">&#x2B07; 合并 &#x2B07;</span>
+                    <span class="primary">&#x1F4C2; 主目录</span><br>
+                    <span style="font-size:12px;">{{ plan.target_dir }}</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="label">需要复制</div>
+                <div class="label">需要复制到主目录</div>
                 <div class="number blue">{{ plan.summary.copy_count }}</div>
             </div>
             <div class="stat-card">
-                <div class="label">需要回收</div>
+                <div class="label">需要移入回收区</div>
                 <div class="number red">{{ plan.summary.delete_count }}</div>
             </div>
             <div class="stat-card">
@@ -56,14 +77,15 @@
         {# ═══ 预览模式警告 ═══ #}
         {% if plan.preview_mode %}
         <div class="message warning">
-            &#x26A0;&#xFE0F; 当前为<strong>预览模式</strong>，不会执行写操作。
+            &#x26A0;&#xFE0F; 当前为<strong>预览模式</strong>，不会执行写操作。<br>
             如需实际执行，请在配置页面关闭预览模式后重新扫描。
         </div>
         {% else %}
         <div class="message warning">
-            &#x26A0;&#xFE0F; 即将对文件进行操作。
-            重复文件会被<strong>移入回收区</strong>（.recycle 目录），而非直接删除。
-            回收区位于源目录下（与原文件同磁盘），如有需要可手动恢复。
+            &#x26A0;&#xFE0F; 即将对文件进行操作。<br>
+            • <strong>复制</strong>：合并目录中独有的文件 → 复制到主目录（保留子目录结构）<br>
+            • <strong>回收</strong>：合并目录中与主目录重复的文件 → 移入 <code>合并目录/.recycle/时间戳/</code>（非直接删除）<br>
+            &#x1F4A1; 回收区在合并目录下（与原文件同磁盘），如有需要可手动恢复。
         </div>
         {% endif %}
 
@@ -74,17 +96,17 @@
                 <table>
                     <tr>
                         <th>操作</th>
-                        <th>文件名</th>
+                        <th>文件</th>
                         <th>大小</th>
-                        <th>原因</th>
+                        <th>说明</th>
                     </tr>
                     {% for op in plan.operations %}
                     <tr>
                         <td>
                             {% if op.type == 'copy' %}
-                            <span style="color:var(--green);font-weight:600;">&#x1F4E5; 复制</span>
+                            <span style="color:var(--green);font-weight:600;">&#x1F4E5; 复制到主目录</span>
                             {% else %}
-                            <span style="color:var(--red);font-weight:600;">&#x1F5D1; 回收</span>
+                            <span style="color:var(--red);font-weight:600;">&#x1F5D1; 移入回收区</span>
                             {% endif %}
                         </td>
                         <td style="font-family:monospace;font-size:12px;">
@@ -108,7 +130,7 @@
 
             {% if not plan.preview_mode %}
             <form action="{{ url_for('execute') }}" method="POST"
-                  onsubmit="return confirm('确认执行合并操作？\n\n该操作会将重复文件移入回收区。\n执行前请确认已备份重要数据。');"
+                  onsubmit="return confirm('确认执行合并操作？\n\n合并目录中的重复文件会被移入回收区（.recycle 目录）。\n执行前请确认已备份重要数据。');"
                   style="display:inline;">
                 <button type="submit" class="btn btn-danger">
                     &#x26A0;&#xFE0F; 确认执行合并

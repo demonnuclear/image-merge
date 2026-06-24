@@ -276,11 +276,13 @@ def scan_directories(config, progress_callback=None):
         print(f"  开始扫描 {dir_key}: {dir_path}")
         print(f"{'=' * 50}")
 
-        # 设置目录显示名：dir_a 是源目录，dir_b 是目标目录
+        # 设置目录显示名：dir_a 是主目录（合并目的地），dir_b 是合并目录（来源）
+        # 主目录 = 你要保留照片的核心目录，所有文件不动，只接收合并过来的文件
+        # 合并目录 = 你要整理进来的目录，不重复的复制到主目录，重复的移入回收区
         if dir_key == 'dir_a':
-            dir_label = '源目录'
+            dir_label = '主目录'
         else:
-            dir_label = '目标目录'
+            dir_label = '合并目录'
 
         # 通知回调：开始扫描该目录
         if progress_callback:

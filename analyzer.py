@@ -179,7 +179,7 @@ def analyze(scan_result, progress_callback=None):
         # 通知回调：开始视觉对比
         if progress_callback:
             progress_callback('visual_compare',
-                              f'🔍 开始视觉相似对比：源目录 {len(unique_to_a)} 个文件 × 目标目录 {len(unique_to_b)} 个文件 = {total_comparisons} 次逐对比较...',
+                              f'🔍 开始视觉相似对比：主目录 {len(unique_to_a)} 个文件 × 合并目录 {len(unique_to_b)} 个文件 = {total_comparisons} 次逐对比较...',
                               current_file='', count=0, total=total_comparisons)
 
         compare_count = 0
@@ -209,11 +209,11 @@ def analyze(scan_result, progress_callback=None):
                     rel_a = f_a.get('relative_path', f_a.get('name', ''))
                     rel_b = f_b.get('relative_path', f_b.get('name', ''))
                     if hamming <= 10:
-                        log_msg = (f'✅ 发现视觉相似: [源] {rel_a} ↔ [目标] {rel_b}'
+                        log_msg = (f'✅ 发现视觉相似: [主目录] {rel_a} ↔ [合并目录] {rel_b}'
                                    f'（汉明距离: {hamming}）')
                     else:
                         log_msg = (f'🔄 正在逐对比对第 {compare_count}/{total_comparisons} 对:'
-                                   f' [源] {rel_a} ↔ [目标] {rel_b}'
+                                   f' [主目录] {rel_a} ↔ [合并目录] {rel_b}'
                                    f'（汉明距离: {hamming}）')
                     progress_callback('visual_compare', log_msg,
                                       current_file=rel_a,

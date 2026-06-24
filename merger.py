@@ -1,4 +1,4 @@
-"""
+﻿"""
 merger.py - 合并执行模块
 ========================
 
@@ -73,12 +73,12 @@ def generate_merge_plan(analysis_result, config):
     """
     根据分析结果和配置生成合并方案。
 
-    合并策略（以 A→B 为例）：
-    - 方向 A→B：A 是源目录，B 是目标目录
-    - A 中独有的文件（unique_to_a）→ 复制到 B
-    - 重复文件中，A 中的副本 → 移动到回收区（B 中的保留）
-    - B 的文件保持不变
-    - B→A 则反过来处理
+    合并策略（合并目录 → 主目录）：
+    - 主目录（dir_a）：照片的核心存放位置，合并的目标
+    - 合并目录（dir_b）：要整理进来的目录
+    - 合并目录中独有的文件（unique_to_b）→ 复制到主目录
+    - 重复文件中，合并目录中的副本 → 移入回收区（主目录中的保留）
+    - 主目录的文件始终不动
 
     Args:
         analysis_result: analyzer.analyze() 的返回值
@@ -86,10 +86,10 @@ def generate_merge_plan(analysis_result, config):
 
     Returns:
         dict: {
-            'direction': 'a_to_b' 或 'b_to_a',
+            'direction': 'merge_to_primary',
             'preview_mode': True/False,
-            'source_dir': 源目录路径,
-            'target_dir': 目标目录路径,
+            'source_dir': 合并目录路径（来源）,
+            'target_dir': 主目录路径（目的地）,
             'operations': [
                 {
                     'type': 'copy' 或 'delete',
@@ -109,24 +109,15 @@ def generate_merge_plan(analysis_result, config):
         转换成 merger.py 需要的操作指令列表（每个文件要做什么）
         这是一种常见的编程模式：分层之间的数据转换
     """
-    direction = config.get('merge_direction', 'a_to_b')
     preview_mode = config.get('preview_mode', True)
 
-    # ── 确定源目录和目标目录 ──
-    # 源目录 = 要被合并的目录（它的文件要被处理）
-    # 目标目录 = 合并到哪里去（它的文件保持不变）
-    if direction == 'a_to_b':
-        source_key = 'dir_a'
-        target_key = 'dir_b'
-        # A 中独有的文件
-        unique_files = analysis_result.get('unique_to_a', [])
-        # 从 A 的角度看重复组
-        duplicate_groups = analysis_result.get('exact_duplicates', [])
-    else:
-        source_key = 'dir_b'
-        target_key = 'dir_a'
-        unique_files = analysis_result.get('unique_to_b', [])
-        duplicate_groups = analysis_result.get('exact_duplicates', [])
+    # ── 固定方向：合并目录 → 主目录 ──
+    # 主目录 = dir_a = 合并的目标位置（文件最终到这儿）
+    # 合并目录 = dir_b = 被合并的来源位置（文件从这儿取）
+    source_key = 'dir_b'      # 合并目录（来源）
+    target_key = 'dir_a'      # 主目录（目的地）
+    unique_files = analysis_result.get('unique_to_b', [])
+    duplicate_groups = analysis_result.get('exact_duplicates', [])
 
     source_dir = analysis_result.get(source_key, {}).get('name', '')
     target_dir = analysis_result.get(target_key, {}).get('name', '')
@@ -134,7 +125,7 @@ def generate_merge_plan(analysis_result, config):
     # ── 构建操作列表 ──
     operations = []
 
-    # 操作 1：将源目录中的唯一文件复制到目标目录
+    # 操作 1：将合并目录中的"唯一文件"复制到主目录
     for f in unique_files:
         operations.append({
             'type': 'copy',
@@ -142,17 +133,13 @@ def generate_merge_plan(analysis_result, config):
             'filename': f['name'],
             'relative_path': f.get('relative_path', f['name']),
             'size': f['size'],
-            'reason': '源目录中独有的文件，需要复制到目标目录'
+            'reason': '合并目录中独有的文件（主目录中没有），需要复制到主目录中'
         })
 
-    # 操作 2：将源目录中与目标目录重复的文件移入回收区
-    # 每个重复组中，源目录对应的文件都是多余的
+    # 操作 2：将合并目录中"与主目录重复的文件"移入回收区
+    # 每个重复组中，合并目录（dir_b）里的文件是多余的
     for group in duplicate_groups:
-        if direction == 'a_to_b':
-            source_files = group.get('files_a', [])
-        else:
-            source_files = group.get('files_b', [])
-
+        source_files = group.get('files_b', [])
         for f in source_files:
             operations.append({
                 'type': 'delete',
@@ -160,12 +147,12 @@ def generate_merge_plan(analysis_result, config):
                 'filename': f['name'],
                 'relative_path': f.get('relative_path', f['name']),
                 'size': f['size'],
-                'reason': '与目标目录中的文件重复（SHA256 相同）'
+                'reason': '与主目录中的文件重复（SHA256 相同），主目录保留，合并目录的移入回收区'
             })
 
     # ── 汇总 ──
     plan = {
-        'direction': direction,
+        'direction': 'merge_to_primary',
         'preview_mode': preview_mode,
         'source_dir': source_dir,
         'target_dir': target_dir,
@@ -224,10 +211,10 @@ def execute_merge(plan):
             'recycle_dir': ''
         }
 
-    # ── 创建回收区目录（在源目录下，与原文件同磁盘） ──
-    # 例如: 文件在 /volume1/photo/sub/img.jpg
-    #       回收在 /volume1/photo/.recycle/20260623_120000/sub/img.jpg
-    # 这样回收操作不会占用目标目录的磁盘空间
+    # ── 创建回收区目录（在合并目录下，与原文件同磁盘） ──
+    # 例如: 文件在 /volume1/photo/merge/sub/img.jpg
+    #       回收在 /volume1/photo/merge/.recycle/20260623_120000/sub/img.jpg
+    # 这样回收操作不会占用主目录的磁盘空间
     target_dir = plan['target_dir']
     source_dir = plan['source_dir']
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -255,13 +242,13 @@ def execute_merge(plan):
     for op in plan['operations']:
         try:
             if op['type'] == 'copy':
-                # ═══ 复制文件（保留源目录结构） ═══
+                # ═══ 复制文件（保留合并目录的结构） ═══
                 # 使用 relative_path 保留子目录结构
-                # 例如: source/sub/dir/img.jpg → target/sub/dir/img.jpg
+                # 例如: merge/sub/dir/img.jpg → primary/sub/dir/img.jpg
                 rel_path = op.get('relative_path', op['filename'])
                 dest_path = os.path.join(target_dir, rel_path)
 
-                # 创建目标子目录（如果不存在）
+                # 创建主目录中的子目录（如果不存在）
                 dest_dir = os.path.dirname(dest_path)
                 if dest_dir and not os.path.exists(dest_dir):
                     os.makedirs(dest_dir, exist_ok=True)
@@ -287,7 +274,7 @@ def execute_merge(plan):
                 executed.append(op)
 
             elif op['type'] == 'delete':
-                # ═══ 移至回收区（保留源目录结构） ═══
+                # ═══ 移至回收区（保留合并目录的结构） ═══
                 rel_path = op.get('relative_path', op['filename'])
                 recycle_path = os.path.join(recycle_dir, rel_path)
 
