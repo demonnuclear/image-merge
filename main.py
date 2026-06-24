@@ -35,12 +35,25 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 # 同一个项目内的 .py 文件之间可以直接用 import
 from config import load_config, save_config, DEFAULT_CONFIG
 
+# 导入照片整理模块的 Blueprint
+# Blueprint 是 Flask 的模块化路由机制
+# 把不同功能的路由拆分到独立文件中，便于维护
+from routes.organize import organize_bp
+
 # ── 导入项目模块（我们自己写的 .py 文件） ──
 # scanner.py 负责扫描目录和计算哈希
 # analyzer.py 负责分析重复关系
 from scanner import scan_directories, calculate_phash_for_all
 from analyzer import analyze
 from merger import generate_merge_plan, execute_merge
+
+# ── 导入蓝图模块 ──
+# Blueprint（蓝图）是 Flask 的路由分组机制
+# 类似 Java 的 @RequestMapping("/organize") + @Controller
+#    或 C# 的 [Route("organize")] + Controller
+# organize_bp 在 routes/organize.py 中定义，包含所有 /organize/ 开头的路由
+# 注册到 app 后，这些路由就生效了
+from routes.organize import organize_bp
 
 
 # ── 创建 Flask 应用实例 ──
@@ -49,6 +62,13 @@ from merger import generate_merge_plan, execute_merge
 # 当被其他文件 import 时，__name__ 的值是 "main"（模块名）
 # Flask 需要这个参数来确定应用的根目录，以找到 templates/ 等文件夹
 app = Flask(__name__)
+
+# ── 注册 Blueprint ──
+# app.register_blueprint(蓝图实例) 将蓝图中的所有路由注册到 Flask 应用
+# 之后 /organize/、/organize/progress、/organize/result 等路由就生效了
+# 类似 Java 中 @RequestMapping 的类被 @SpringBootApplication 扫描到
+#    或 C# 中 [Route] 在 Program.cs 中被 app.MapControllers() 注册
+app.register_blueprint(organize_bp)
 
 
 # ── 全局变量 ──
