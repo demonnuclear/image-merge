@@ -54,6 +54,7 @@ from merger import generate_merge_plan, execute_merge
 # organize_bp 在 routes/organize.py 中定义，包含所有 /organize/ 开头的路由
 # 注册到 app 后，这些路由就生效了
 from routes.organize import organize_bp
+from routes.dedup_single import dedup_single_bp
 
 
 # ── 创建 Flask 应用实例 ──
@@ -69,6 +70,7 @@ app = Flask(__name__)
 # 类似 Java 中 @RequestMapping 的类被 @SpringBootApplication 扫描到
 #    或 C# 中 [Route] 在 Program.cs 中被 app.MapControllers() 注册
 app.register_blueprint(organize_bp)
+app.register_blueprint(dedup_single_bp)
 
 
 # ── 全局变量 ──

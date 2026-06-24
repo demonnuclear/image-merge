@@ -7,4 +7,8 @@
        class="nav-item {{ 'active' if request.path.startswith('/organize') }}">
         &#x1F4C2; 照片整理
     </a>
+    <a href="{{ url_for('dedup_single.dedup_single_page') }}"
+       class="nav-item {{ 'active' if request.path.startswith('/dedup-single') }}">
+        &#x1F50D; 单目录查重
+    </a>
 </div>

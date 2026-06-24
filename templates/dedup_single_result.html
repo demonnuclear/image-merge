@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% include 'navigation.html' %}
+
+        <div class="page-title">
+            &#x1F4CA; <span>删除结果</span>
+        </div>
+
+        {% if not result %}
+        <div class="empty-state">
+            <div class="icon">&#x2753;</div>
+            <p>暂无删除记录。</p>
+        </div>
+        {% else %}
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">成功移入回收区</div>
+                <div class="number green">{{ result.get('success_count', 0) }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">失败</div>
+                <div class="number red">{{ result.get('failed_count', 0) }}</div>
+            </div>
+            <div class="stat-card" style="grid-column: span 2;">
+                <div class="label">回收区路径</div>
+                <div class="path-display" style="margin-top:6px;">{{ result.get('recycle_dir', '') }}</div>
+                <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
+                    如需恢复文件，请到回收区手动复制回原位置
+                </div>
+            </div>
+        </div>
+
+        {% if result.get('errors') %}
+        <div class="card">
+            <h2>&#x274C; 失败记录</h2>
+            <div class="table-wrap">
+                <table>
+                    <tr><th>文件</th><th>错误</th></tr>
+                    {% for err in result.errors %}
+                    <tr>
+                        <td style="font-family:monospace;font-size:12px;">{{ err.file }}</td>
+                        <td style="color:var(--red);">{{ err.error }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="actions">
+            <a href="{{ url_for('dedup_single.dedup_single_page') }}" class="btn btn-primary">
+                &#x1F504; 继续扫描
+            </a>
+            <a href="{{ url_for('dedup_single.dedup_report') }}" class="btn btn-secondary">
+                &#x1F4CA; 返回报告
+            </a>
+        </div>
+
+        {% endif %}
+    </div>
+</body>
+</html>

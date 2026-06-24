@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% include 'navigation.html' %}
+
+        <div class="page-title">
+            &#x1F50D; <span>单目录查重</span>
+        </div>
+
+        <div class="card">
+            <h2>&#x2699;&#xFE0F; 配置</h2>
+            <form action="{{ url_for('dedup_single.dedup_single_page') }}" method="POST">
+                <div class="form-group">
+                    <label>&#x1F4C1; 源目录路径</label>
+                    <input type="text" name="source_dir"
+                           placeholder="/volume1/photo/我的照片"
+                           required>
+                    <div class="field-explanation">
+                        扫描此目录中的所有图片，找出 SHA256 完全一致 和 视觉相似（压缩过的）的照片。
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary" id="scanBtn">
+                        &#x1F50D; 开始扫描
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>&#x1F4D6; 使用说明</h2>
+            <ul>
+                <li><strong>精确重复</strong>：SHA256 完全一致，文件内容完全相同</li>
+                <li><strong>视觉相似</strong>：内容一样但分辨率/压缩率不同（如原图与压缩版、水印版）</li>
+                <li>系统只展示信息（预览图、大小、分辨率），由你选择保留哪些、删除哪些</li>
+                <li>删除的文件移入 <code>.recycle/</code> 目录，不是永久删除，可手动恢复</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('form')?.addEventListener('submit', function() {
+            document.getElementById('scanBtn').disabled = true;
+            document.getElementById('scanBtn').innerHTML = '&#x23F3; 扫描中...';
+        });
+    </script>
+</body>
+</html>
