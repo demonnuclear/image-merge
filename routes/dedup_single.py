@@ -102,6 +102,22 @@ def dedup_report():
                            title='查重报告')
 
 
+@dedup_single_bp.route('/dedup-single/image/<path:filename>')
+def dedup_full_image(filename):
+    """
+    原图路由——直接返回原始文件内容，不缩放。
+
+    用于点击缩略图后放大查看原图。
+    """
+    source_dir = dedup_result.get('source_dir', '')
+    if not source_dir:
+        return 'No source directory', 400
+    file_path = Path(source_dir) / filename
+    if not file_path.exists():
+        return 'File not found', 404
+    return send_file(str(file_path))
+
+
 @dedup_single_bp.route('/dedup-single/preview/<path:filename>')
 def dedup_preview(filename):
     """

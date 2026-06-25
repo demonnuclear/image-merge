@@ -1,0 +1,16 @@
+appname=image-tools
+version=1.0.4
+display_name=Image Tools
+desc=Image Tools provides three photo management features via browser UI. Merge: scan two directories for SHA256 duplicates and pHash similar photos. Organize: reorganize photos by EXIF date. Dedup: scan single directory for SHA256 duplicates and pHash similar images.
+arch=x86_64
+source=thirdparty
+maintainer=demonnuclear
+maintainer_url=https://github.com/demonnuclear
+distributor=demonnuclear
+distributor_url=https://github.com/demonnuclear/image-merge
+os_min_version=0.9.27
+service_port=5000
+checkport=true
+desktop_uidir=ui
+desktop_applaunchname=image-tools.APPLICATION
+ctl_stop=true

@@ -103,6 +103,49 @@
             font-size: 48px;
             margin-bottom: 12px;
         }
+        .file-card .preview {
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .file-card .preview:hover {
+            opacity: 0.8;
+        }
+        #lightbox {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            align-items: center;
+            justify-content: center;
+            cursor: zoom-out;
+        }
+        #lightbox.open {
+            display: flex;
+        }
+        #lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 4px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            object-fit: contain;
+        }
+        #lightbox .filename-overlay {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: 'Consolas', monospace;
+            max-width: 80%;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -174,6 +217,10 @@
                              src="{{ url_for('dedup_single.dedup_preview', filename=f.relative_path) }}"
                              alt="{{ f.relative_path }}"
                              loading="lazy"
+                             onclick="openLightbox(
+                                 '{{ url_for('dedup_single.dedup_full_image', filename=f.relative_path) }}',
+                                 '{{ f.relative_path }}'
+                             )"
                              onerror="this.style.display='none'">
                         <div class="filename">{{ f.relative_path }}</div>
                         <div class="meta">{{ (f.size / 1024) | round(1) }} KB</div>
@@ -215,6 +262,11 @@
         {% endif %}
     </div>
 
+    <div id="lightbox" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="原图">
+        <div id="lightbox-filename" class="filename-overlay"></div>
+    </div>
+
     <script>
         function toggleAll(source) {
             var groups = document.querySelectorAll('.group-card');
@@ -246,6 +298,19 @@
             return confirm('确认将 ' + count + ' 个文件移入回收区？\n\n文件不会被直接删除，可在 .recycle 目录中手动恢复。');
         }
 
+        function openLightbox(src, filename) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox-filename').textContent = filename;
+            document.getElementById('lightbox').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { closeLightbox(); }
+        });
         updateSelected();
     </script>
 </body>

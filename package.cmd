@@ -1,1 +1,0 @@
-tar -czf ..\image-merge.tar.gz --exclude=__pycache__ --exclude=.git --exclude=.idea --exclude=.venv --exclude=merge.log --exclude=*.pyc --exclude=test_images * .gitignore

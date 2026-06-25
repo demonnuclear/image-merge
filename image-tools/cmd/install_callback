@@ -1,0 +1,57 @@
+#!/bin/bash
+
+PYTHON=""
+if command -v python3 &>/dev/null; then
+    PYTHON="python3"
+elif command -v python &>/dev/null; then
+    PYTHON="python"
+else
+    echo "Python not found. Please install Python 3 first." > "$TRIM_TEMP_LOGFILE"
+    exit 1
+fi
+
+PIP=""
+if command -v pip3 &>/dev/null; then
+    PIP="pip3"
+elif command -v pip &>/dev/null; then
+    PIP="pip"
+else
+    apt-get update -qq 2>/dev/null
+    apt-get install -y -qq python3-pip 2>/dev/null
+    if command -v pip3 &>/dev/null; then
+        PIP="pip3"
+    else
+        echo "Failed to install python3-pip via apt." > "$TRIM_TEMP_LOGFILE"
+        exit 1
+    fi
+fi
+
+# Install build deps for Pillow
+apt-get install -y -qq libjpeg-dev zlib1g-dev libpng-dev libtiff-dev libwebp-dev 2>/dev/null
+
+# Install ffmpeg for image processing
+if ! command -v ffprobe &>/dev/null; then
+    apt-get install -y -qq ffmpeg 2>/dev/null
+fi
+
+PIP_ARGS="--no-cache-dir --break-system-packages -i https://pypi.tuna.tsinghua.edu.cn/simple"
+
+# Upgrade pip
+$PIP install --upgrade pip $PIP_ARGS 2>/dev/null
+
+PIP_CMD="pip"
+if ! command -v pip &>/dev/null; then
+    PIP_CMD="pip3"
+fi
+
+REQ_FILE="${TRIM_APPDEST}/requirements.txt"
+if [ -f "$REQ_FILE" ]; then
+    $PIP_CMD install $PIP_ARGS -r "$REQ_FILE" \
+        > "$TRIM_PKGVAR/pip_install.log" 2>&1
+    if [ $? -ne 0 ]; then
+        tail -20 "$TRIM_PKGVAR/pip_install.log" > "$TRIM_TEMP_LOGFILE"
+        exit 1
+    fi
+fi
+
+exit 0
