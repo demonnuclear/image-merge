@@ -146,6 +146,40 @@
             overflow: hidden;
             white-space: nowrap;
         }
+        #lightbox .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 80px;
+            background: rgba(255,255,255,0.08);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 32px;
+            cursor: pointer;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        #lightbox .nav-arrow:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        #lightbox .nav-arrow.prev { left: 16px; }
+        #lightbox .nav-arrow.next { right: 16px; }
+        #lightbox .nav-counter {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -201,6 +235,7 @@
             </div>
 
             {% for group in result.groups %}
+            {% set g_idx = loop.index0 %}
             <div class="group-card">
                 <div class="group-header">
                     {{ group.description }}
@@ -212,15 +247,13 @@
                 <div class="file-grid">
                     {% for f in group.files %}
                     {% set is_first = loop.first %}
+                    {% set f_idx = loop.index0 %}
                     <div class="file-card">
                         <img class="preview"
                              src="{{ url_for('dedup_single.dedup_preview', filename=f.relative_path) }}"
                              alt="{{ f.relative_path }}"
                              loading="lazy"
-                             onclick="openLightbox(
-                                 '{{ url_for('dedup_single.dedup_full_image', filename=f.relative_path) }}',
-                                 '{{ f.relative_path }}'
-                             )"
+                             onclick="openLightbox({{ g_idx }}, {{ f_idx }})"
                              onerror="this.style.display='none'">
                         <div class="filename">{{ f.relative_path }}</div>
                         <div class="meta">{{ (f.size / 1024) | round(1) }} KB</div>
@@ -230,19 +263,15 @@
                         <span class="keep-badge">保留（最大文件）</span>
                         {% endif %}
 
-                        <div class="checkbox-wrapper">
-                            <label>
-                                <input type="checkbox" name="selected_files"
-                                       value="{{ f.path }}"
-                                       {{ 'checked' if not is_first else '' }}
-                                       onchange="updateSelected()">
-                                {% if is_first %}
-                                    保留（不删）
-                                {% else %}
-                                    删除
-                                {% endif %}
-                            </label>
-                        </div>
+                    <div class="checkbox-wrapper">
+                        <label>
+                            <input type="checkbox" name="selected_files"
+                                   value="{{ f.path }}"
+                                   {{ 'checked' if not is_first else '' }}
+                                   onchange="updateSelected()">
+                            删除
+                        </label>
+                    </div>
                     </div>
                     {% endfor %}
                 </div>
@@ -263,16 +292,33 @@
     </div>
 
     <div id="lightbox" onclick="closeLightbox()">
+        <button class="nav-arrow prev" onclick="event.stopPropagation(); navImage(-1)">&#x276E;</button>
+        <button class="nav-arrow next" onclick="event.stopPropagation(); navImage(1)">&#x276F;</button>
+        <div id="lightbox-counter" class="nav-counter"></div>
         <img id="lightbox-img" src="" alt="原图">
         <div id="lightbox-filename" class="filename-overlay"></div>
     </div>
 
     <script>
+        // Jinja2 生成的分组图片数据: groupImages[组索引] = [{src, filename}, ...]
+        var groupImages = [
+            {% for group in result.groups %}
+            [
+                {% for f in group.files %}
+                { src: '{{ url_for("dedup_single.dedup_full_image", filename=f.relative_path) }}',
+                  filename: '{{ f.relative_path | replace("\\", "\\\\") | replace("'", "\\'") }}' },
+                {% endfor %}
+            ]{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        var currentGroup = -1;
+        var currentFile = -1;
+
         function toggleAll(source) {
             var groups = document.querySelectorAll('.group-card');
             groups.forEach(function(group) {
                 var checkboxes = group.querySelectorAll('input[name="selected_files"]');
-                // 每组第一个（最大文件）不选中，其他全选或全不选
                 checkboxes.forEach(function(cb, idx) {
                     if (source.checked) {
                         cb.checked = idx > 0;
@@ -298,19 +344,49 @@
             return confirm('确认将 ' + count + ' 个文件移入回收区？\n\n文件不会被直接删除，可在 .recycle 目录中手动恢复。');
         }
 
-        function openLightbox(src, filename) {
-            document.getElementById('lightbox-img').src = src;
-            document.getElementById('lightbox-filename').textContent = filename;
+        function renderLightbox() {
+            var group = groupImages[currentGroup];
+            var file = group[currentFile];
+            document.getElementById('lightbox-img').src = file.src;
+            document.getElementById('lightbox-filename').textContent = file.filename;
+            document.getElementById('lightbox-counter').textContent =
+                (currentFile + 1) + ' / ' + group.length + ' 同组图片';
+        }
+
+        function openLightbox(gIdx, fIdx) {
+            currentGroup = gIdx;
+            currentFile = fIdx;
+            renderLightbox();
             document.getElementById('lightbox').classList.add('open');
             document.body.style.overflow = 'hidden';
         }
+
         function closeLightbox() {
             document.getElementById('lightbox').classList.remove('open');
             document.body.style.overflow = '';
         }
+
+        function navImage(direction) {
+            if (currentGroup < 0) return;
+            var group = groupImages[currentGroup];
+            currentFile = (currentFile + direction + group.length) % group.length;
+            renderLightbox();
+        }
+
+        // 键盘导航: Esc 关闭, 左右箭头切换
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') { closeLightbox(); }
+            if (e.key === 'ArrowLeft') { navImage(-1); e.preventDefault(); }
+            if (e.key === 'ArrowRight') { navImage(1); e.preventDefault(); }
         });
+
+        // 鼠标滚轮在同组图片间切换
+        document.getElementById('lightbox').addEventListener('wheel', function(e) {
+            if (e.deltaY < 0) { navImage(-1); }
+            else { navImage(1); }
+            e.preventDefault();
+        }, { passive: false });
+
         updateSelected();
     </script>
 </body>

@@ -1,6 +1,6 @@
 <div class="nav-bar">
     <a href="{{ url_for('index') }}"
-       class="nav-item {{ 'active' if not request.path.startswith('/organize') }}">
+       class="nav-item {{ 'active' if request.path in ['/', '/report', '/plan', '/scanning', '/merging', '/result', '/progress', '/merge_progress', '/execute'] }}">
         &#x1F4F7; 去重合并
     </a>
     <a href="{{ url_for('organize.organize_page') }}"
