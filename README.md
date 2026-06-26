@@ -1,19 +1,21 @@
-# 图片去重合并工具 (Image Dedup & Merge Tool)
+# 图片工具箱 (Image Toolbox)
 
-一个基于 Flask 的 Web 工具，用于扫描和合并两个目录中的重复图片。
+基于 Flask 的 Web 图片管理工具，部署于飞牛 OS (fnOS) NAS。
 
-## 功能
+## 功能模块
 
-- **SHA256 精确去重**：通过文件哈希识别完全相同图片
-- **感知哈希（pHash）视觉去重**：识别视觉上相似的图片
-- **合并方向可选**：A→B 或 B→A
-- **预览模式**：默认开启，安全确认后再执行
-- **回收区机制**：删除前移到 `.recycle` 目录，可恢复
+### 1. 去重合并
+扫描两个目录中的图片，找 SHA256 精确重复和 pHash 视觉相似照片，生成合并方案，由你确认后执行。
+
+### 2. 照片整理
+按拍摄日期（EXIF）自动重新组织照片目录结构，支持后台异步执行。
+
+### 3. 单目录查重
+单目录内部扫描 SHA256 精确重复和 pHash 视觉相似图片，展示对比报告，由你勾选哪些需要删除（移入回收区，非永久删除）。
 
 ## 安装
 
 ```bash
-# 安装依赖
 pip install -r requirements.txt
 ```
 
@@ -23,47 +25,33 @@ pip install -r requirements.txt
 python main.py
 ```
 
-打开浏览器访问 `http://localhost:5000`，配置两个目录并开始扫描。
-
-## 部署到 飞牛OS
-
-1. 将项目上传到 NAS（通过 SMB 或 scp）
-2. 在 NAS 上安装 Python3 + pip：
-   ```bash
-   sudo apt update
-   sudo apt install python3 python3-pip
-   pip3 install -r requirements.txt
-   ```
-3. 启动服务：
-   ```bash
-   python3 main.py
-   ```
-4. 浏览器访问 `http://<NAS_IP>:5000`
-
-建议使用 `screen` 或 `nohup` 保持后台运行：
-```bash
-nohup python3 main.py > app.log 2>&1 &
-```
+浏览器访问 `http://localhost:5000`
 
 ## 项目结构
 
 ```
-├── main.py          # 程序入口，Flask 路由
-├── config.py        # 配置读写
-├── scanner.py       # 目录扫描 + SHA256 + pHash
-├── analyzer.py      # 重复分析
-├── merger.py        # 合并执行
-├── config.json      # 配置文件
-├── requirements.txt # Python 依赖
-├── static/
-│   └── style.css    # 页面样式
-└── templates/
-    ├── index.html   # 配置页面
-    ├── report.html  # 分析报告
-    ├── plan.html    # 合并方案
-    └── result.html  # 执行结果
+├── main.py               # 程序入口，注册 Blueprint
+├── config.py             # 配置读写
+├── scanner.py            # 目录扫描 + SHA256 + pHash
+├── analyzer.py           # 重复分析
+├── merger.py             # 合并执行
+├── organizer.py          # 照片整理
+├── dedup_single.py       # 单目录查重
+├── routes/
+│   ├── organize.py       # 照片整理 Blueprint（/organize/）
+│   └── dedup_single.py   # 单目录查重 Blueprint（/dedup-single/）
+├── templates/            # 14 个 HTML 模板
+├── static/style.css      # 样式
+└── requirements.txt      # Flask, Pillow, imagehash
 ```
 
-## 作者
+## 部署到飞牛 OS
 
-一个 Python 学习项目，适合有 Java/C# 背景的开发者从零开始学 Python。
+```bash
+pip install -r requirements.txt
+nohup python3 main.py > app.log 2>&1 &
+```
+
+浏览器访问 `http://<NAS_IP>:5000`
+
+也可打包为 fpk 应用（`image-tools/` 目录），通过飞牛应用中心安装。
